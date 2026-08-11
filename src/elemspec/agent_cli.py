@@ -199,6 +199,8 @@ def _цикл_браузера(
                     результат = браузер.подобрать_локатор(запрос.get("ref"))
                 elif операция == "click":
                     результат = браузер.нажать(запрос.get("ref"))
+                elif операция == "hover":
+                    результат = браузер.навести(запрос.get("ref"))
                 elif операция == "fill":
                     результат = браузер.ввести(
                         запрос.get("ref"),
@@ -222,7 +224,7 @@ def _цикл_браузера(
                 else:
                     raise ОшибкаАгентскогоAPI(
                         "операция browser должна быть: start, snapshot, "
-                        "locator-check, locator-pick, click, fill, key или close"
+                        "locator-check, locator-pick, click, hover, fill, key или close"
                     )
                 записать_событие(
                     каталог_разведок,

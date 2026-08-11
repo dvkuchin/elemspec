@@ -46,6 +46,11 @@ class АгентскийБраузерTest(unittest.TestCase):
                 '<button data-testid="КнопкаВойти">Войти</button>'
                 '<input aria-label="Имя">'
                 '<a href="/next">Продолжить</a>'
+                '<div data-component="navigation-item" '
+                'onmouseenter="this.dataset.hovered=\'yes\'">'
+                '<span data-component="label">Клиенты</span></div>'
+                '<div data-component="navigation-item">'
+                '<span data-component="label">Сделки</span></div>'
             )
             снимок = браузер.снимок()
             кнопка = next(
@@ -58,6 +63,18 @@ class АгентскийБраузерTest(unittest.TestCase):
                 for элемент in снимок["элементы"]
                 if элемент["имя"] == "Имя"
             )
+            навигация = [
+                элемент
+                for элемент in снимок["элементы"]
+                if элемент["компонент"] == "navigation-item"
+            ]
+            self.assertEqual(
+                ["Клиенты", "Сделки"], [x["текст"] for x in навигация]
+            )
+            self.assertEqual(
+                ["Клиенты", "Сделки"], [x["метка"] for x in навигация]
+            )
+            self.assertEqual(2, len({x["ref"] for x in навигация}))
             проверка = браузер.проверить_локатор("элемент", "КнопкаВойти")
             self.assertEqual(1, проверка["совпадений"])
             self.assertEqual(1, проверка["видимых"])
@@ -73,6 +90,13 @@ class АгентскийБраузерTest(unittest.TestCase):
             self.assertEqual(
                 "Иван",
                 браузер._страница.locator("input").input_value(),
+            )
+            браузер.навести(навигация[0]["ref"])
+            self.assertEqual(
+                "yes",
+                браузер._страница.locator(
+                    "[data-component='navigation-item']"
+                ).first.get_attribute("data-hovered"),
             )
 
     def test_верхнеуровневый_переход_на_чужой_хост_блокируется(self) -> None:

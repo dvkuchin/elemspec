@@ -61,6 +61,7 @@ class АгентскийAPITest(unittest.TestCase):
         self.assertTrue(
             any(фраза["действие"] == "открыть" for фраза in результат["фразы"])
         )
+        self.assertIn("hover", результат["операции"]["browser"]["операции"])
 
     def test_валидация_возвращает_разобранные_шаги(self) -> None:
         self._создать_тест()

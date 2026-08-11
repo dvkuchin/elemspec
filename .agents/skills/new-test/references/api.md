@@ -28,10 +28,16 @@
 {"browser_session":"<uuid>","operation":"snapshot"}
 {"browser_session":"<uuid>","operation":"locator-pick","ref":"e4"}
 {"browser_session":"<uuid>","operation":"click","ref":"e4"}
+{"browser_session":"<uuid>","operation":"hover","ref":"e4"}
 {"browser_session":"<uuid>","operation":"fill","ref":"e7","value":"Иван"}
 {"browser_session":"<uuid>","operation":"key","value":"Enter"}
 {"browser_session":"<uuid>","operation":"locator-check","locator_kind":"элемент","value":"Результат"}
 ```
+
+`snapshot` возвращает отдельный `ref` для каждого видимого
+`data-component="navigation-item"`. В полях `текст` и `метка` находится текст
+вложенного `data-component="label"`. После `hover`, клика или другого изменения
+DOM запросить новый `snapshot`.
 
 После изменения DOM запрашивать новый snapshot; старые `ref` не считать
 актуальным доказательством.

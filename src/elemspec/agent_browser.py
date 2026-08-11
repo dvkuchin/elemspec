@@ -15,6 +15,11 @@ _АВТОИМЯ = re.compile(
     r"^(Надпись|Группа|Картинка|ФиксированнаяГруппа|Флажок|"
     r"Кнопка|Поле|Таблица|Колонка)\d+$"
 )
+_СЕЛЕКТОР_АДРЕСУЕМЫХ = (
+    "a, button, input, textarea, select, "
+    "[role], [data-testid], [contenteditable='true'], "
+    "[data-component='navigation-item']"
+)
 
 
 def это_автоимя(имя: str | None) -> bool:
@@ -42,7 +47,7 @@ class АгентскийБраузер:
         self._страница = None
         self._ограничитель = ОграничительНавигации(политика)
         self._ссылки: dict[str, Any] = {}
-        self._описания_ссылок: dict[str, dict[str, str]] = {}
+        self._описания_ссылок: dict[str, dict[str, Any]] = {}
         self._выбранные_локаторы: dict[str, dict[str, str]] = {}
 
     def __enter__(self) -> "АгентскийБраузер":
@@ -87,10 +92,7 @@ class АгентскийБраузер:
     def снимок(self, лимит: int = 500) -> dict[str, Any]:
         """Вернуть видимые адресуемые элементы без произвольного JavaScript."""
         лимит = max(1, min(int(лимит), 2_000))
-        локатор = self._страница.locator(
-            "a, button, input, textarea, select, "
-            "[role], [data-testid], [contenteditable='true']"
-        )
+        локатор = self._страница.locator(_СЕЛЕКТОР_АДРЕСУЕМЫХ)
         элементы = []
         self._ссылки = {}
         self._описания_ссылок = {}
@@ -102,6 +104,14 @@ class АгентскийБраузер:
                     continue
                 тег = элемент.evaluate("(node) => node.tagName.toLowerCase()")
                 текст = элемент.inner_text().strip()
+                компонент = элемент.get_attribute("data-component")
+                метка = None
+                if компонент == "navigation-item":
+                    метки = элемент.locator("[data-component='label']")
+                    if метки.count():
+                        метка = метки.first.inner_text().strip()
+                        if метка:
+                            текст = метка
                 if not текст and тег in {"input", "textarea", "select"}:
                     текст = элемент.input_value()
                 ref = f"e{len(элементы) + 1}"
@@ -114,6 +124,8 @@ class АгентскийБраузер:
                     "testid": элемент.get_attribute("data-testid"),
                     "href": элемент.get_attribute("href"),
                     "тип": элемент.get_attribute("type"),
+                    "компонент": компонент,
+                    "метка": метка[:300] if метка else None,
                     "имя": (
                         элемент.get_attribute("aria-label")
                         or элемент.get_attribute("name")
@@ -245,6 +257,23 @@ class АгентскийБраузер:
             "url_после": self._страница.url,
             "новые_страницы": новые,
             "страниц": [страница.url for страница in страницы_после],
+        }
+
+    def навести(self, ref: str) -> dict[str, Any]:
+        """Навести указатель на адресуемый элемент и дать UI обновить hover-состояние."""
+        элемент = self._получить_ref(ref)
+        локатор = self._локатор_ref(ref)
+        try:
+            элемент.hover()
+            self._страница.wait_for_timeout(100)
+        except ОшибкаPlaywright as ошибка:
+            raise ОшибкаАгентскогоAPI(
+                f"наведение указателя не выполнено: {ошибка}"
+            ) from ошибка
+        return {
+            "ref": ref,
+            "локатор": локатор,
+            "url": self._страница.url,
         }
 
     def ввести(self, ref: str, значение: str) -> dict[str, Any]:

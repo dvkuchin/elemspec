@@ -96,6 +96,18 @@ class MCPСерверTest(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(ответ.is_error)
         self.assertIn("locator_kind и value", ответ.content[0].text)
 
+    async def test_hover_требует_ref_из_snapshot(self) -> None:
+        async with Client(self.сервер, raise_exceptions=True) as клиент:
+            ответ = await клиент.call_tool(
+                "browser_action",
+                {
+                    "browser_session": "missing",
+                    "operation": "hover",
+                },
+            )
+        self.assertTrue(ответ.is_error)
+        self.assertIn("hover требует ref", ответ.content[0].text)
+
 
 class ГлобальныйMCPСерверTest(unittest.IsolatedAsyncioTestCase):
     async def test_стартует_вне_проекта_и_возвращает_tool_error(self) -> None:

@@ -16,7 +16,7 @@ from .model import Настройки, ОшибкаЗагрузки, Тест, �
 from .project import ОшибкаПолитикиХостов, ПолитикаХостов
 
 
-ВЕРСИЯ_API = "0.2.0-dev.0"
+ВЕРСИЯ_API = "0.3.0-dev.0"
 ВЕРСИЯ_DSL = "0.1.0-dev.0"
 
 СОСТОЯНИЕ_ЧЕРНОВИК = "DRAFT_READY"
@@ -95,6 +95,7 @@ def контракт(
                     "locator-check",
                     "locator-pick",
                     "click",
+                    "hover",
                     "fill",
                     "key",
                     "close",

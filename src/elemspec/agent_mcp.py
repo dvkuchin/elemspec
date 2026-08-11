@@ -36,7 +36,7 @@ from .agent_sessions import применить, подготовить, откр
 from .project import ПолитикаХостов, Проект
 
 
-ВЕРСИЯ_MCP_API = "0.1.0-dev.0"
+ВЕРСИЯ_MCP_API = "0.2.0-dev.0"
 
 
 def корень_mcp(явный: Path | None = None) -> Path:
@@ -351,7 +351,13 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
     def browser_action(
         browser_session: str,
         operation: Literal[
-            "snapshot", "locator-check", "locator-pick", "click", "fill", "key"
+            "snapshot",
+            "locator-check",
+            "locator-pick",
+            "click",
+            "hover",
+            "fill",
+            "key",
         ],
         ref: str | None = None,
         locator_kind: Literal["элемент", "текст", "селектор"] | None = None,
@@ -363,7 +369,10 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
             raise ОшибкаMCPАдаптера(
                 "locator-check требует locator_kind и value"
             )
-        if operation in {"locator-pick", "click", "fill"} and ref is None:
+        if (
+            operation in {"locator-pick", "click", "hover", "fill"}
+            and ref is None
+        ):
             raise ОшибкаMCPАдаптера(
                 f"{operation} требует ref из browser snapshot"
             )
@@ -376,7 +385,7 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
             запрос["лимит"] = limit
         elif operation == "locator-check":
             запрос.update({"вид": locator_kind, "значение": value})
-        elif operation in {"locator-pick", "click"}:
+        elif operation in {"locator-pick", "click", "hover"}:
             запрос["ref"] = ref
         elif operation == "fill":
             запрос.update({"ref": ref, "значение": value})
