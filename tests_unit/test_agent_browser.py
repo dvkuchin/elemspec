@@ -33,6 +33,17 @@ class _Маршрут:
         self.прерван = True
 
 
+class _RedirectЗапрос:
+    def __init__(self, url: str, предыдущий=None) -> None:
+        self.url = url
+        self.redirected_from = предыдущий
+
+
+class _RedirectОтвет:
+    def __init__(self, запрос: _RedirectЗапрос) -> None:
+        self.request = запрос
+
+
 class АгентскийБраузерTest(unittest.TestCase):
     @unittest.skipUnless(
         os.environ.get("ELEMPWT_BROWSER_TESTS") == "1",
@@ -125,6 +136,21 @@ class АгентскийБраузерTest(unittest.TestCase):
         self.assertTrue(это_автоимя("Надпись6"))
         self.assertTrue(это_автоимя("ФиксированнаяГруппа12"))
         self.assertFalse(это_автоимя("КнопкаВойти"))
+
+    def test_сохраняет_цепочку_серверных_перенаправлений(self) -> None:
+        первый = _RedirectЗапрос("https://app.example.test/demo")
+        второй = _RedirectЗапрос("https://auth.example.test/signin", первый)
+        self.assertEqual(
+            [
+                "https://app.example.test/demo",
+                "https://auth.example.test/signin",
+            ],
+            АгентскийБраузер._цепочка_перенаправлений(
+                _RedirectОтвет(второй),
+                первый.url,
+                второй.url,
+            ),
+        )
 
 
 if __name__ == "__main__":
