@@ -14,6 +14,7 @@ from elemspec.integration import (
     _удалить_skill,
     _установить_mcp,
     _установить_skill,
+    конфигурация_mcp,
 )
 
 
@@ -86,6 +87,31 @@ class CodexИнтеграцияTest(unittest.TestCase):
             with patch("elemspec.integration.sys.executable", str(python)):
                 команда, _ = _команда_mcp()
             self.assertEqual(str(python), команда)
+
+    def test_генерирует_универсальную_mcp_конфигурацию(self) -> None:
+        команда, аргументы = _команда_mcp()
+        self.assertEqual(
+            {
+                "mcpServers": {
+                    "elemspec": {
+                        "type": "stdio",
+                        "command": команда,
+                        "args": аргументы,
+                    }
+                }
+            },
+            конфигурация_mcp(),
+        )
+
+    def test_привязывает_mcp_к_явному_проекту(self) -> None:
+        with tempfile.TemporaryDirectory() as временный:
+            проект = Path(временный)
+            _, аргументы = _команда_mcp(проект)
+            ожидаемый = str(проект.resolve())
+        self.assertEqual(
+            ["-m", "elemspec", "--project", ожидаемый, "mcp"],
+            аргументы,
+        )
 
     def test_не_затирает_чужой_mcp(self) -> None:
         чужой = CompletedProcess(

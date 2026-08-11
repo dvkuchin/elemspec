@@ -11,7 +11,7 @@ Wheel уже собирается; публикация в PyPI ещё не вы
 
 ## Статус
 
-- Текущая версия: **`0.4.0.dev0`**.
+- Текущая версия: **`0.5.0.dev0`**.
 - Проект до первого стабильного релиза: интерфейсы и форматы можно менять без
   слоя обратной совместимости.
 - Основная проверенная среда — macOS. Linux и Windows включены в CI-матрицу, но
@@ -39,7 +39,7 @@ Wheel уже собирается; публикация в PyPI ещё не вы
 текст сценария
         │
         ▼
-$new-test + Codex ─────────────┐
+new_test + ИИ-клиент ─────────┐
         │                          │ только узкие команды
         ▼                          │
 elemspec mcp → доверенное ядро ←┘
@@ -63,7 +63,9 @@ _reports/<дата>/report.{json,html} + снимки/видео
 - `elemspec` — основной CLI-исполнитель;
 - `src/elemspec/` — Python-пакет движка и агентского ядра;
 - `elemspec mcp` — stdio MCP-транспорт доверенного агентского ядра;
-- `$CODEX_HOME/skills/new-test/` — установленный процесс диалога и оркестрации;
+- MCP prompt `new_test` — переносимая инструкция для поддерживающих prompts клиентов;
+- `$CODEX_HOME/skills/new-test/` — дополнительная удобная оболочка для Codex;
+- `elemspec mcp-config` — готовые параметры подключения из интерфейса ИИ-клиента;
 - `elemspec integrate codex` — установка/проверка пользовательского skill и MCP;
 - `elemspec author` — отдельный строгий Codex CLI без shell и произвольной записи;
 - `elemspec.toml` — точный allowlist hostname для движка и browser-разведки;
@@ -87,8 +89,8 @@ _reports/<дата>/report.{json,html} + снимки/видео
 ```bash
 pipx install .
 elemspec install-browser
-elemspec integrate codex
 elemspec --version
+elemspec mcp-config
 elemspec --project examples/getting-started run smoke
 ```
 
@@ -163,7 +165,20 @@ tests/<имя>/
 
 ## ИИ-автор тестов
 
-Для обычной задачи Codex один раз установите пользовательский skill и MCP:
+Основной переносимый интерфейс ИИ-автора — локальный stdio MCP. Получите готовую
+конфигурацию и добавьте сервер `elemspec` через интерфейс своего ИИ-клиента:
+
+```bash
+elemspec mcp-config
+# если клиент не передаёт рабочий каталог серверу:
+elemspec --project /path/to/my-specs mcp-config
+```
+
+Клиент с поддержкой MCP prompts покажет команду `new_test`. В Claude Code она
+вызывается как `/mcp__elemspec__new_test`; в клиенте без меню prompts достаточно
+попросить агента использовать MCP `elemspec` для создания теста.
+
+Для Codex доступен дополнительный пользовательский skill `$new-test`:
 
 ```bash
 elemspec integrate codex
@@ -203,6 +218,7 @@ elemspec author exec "Создай тест ..."
 - allowlist hostname до и во время навигации;
 - статическая валидация, agent sessions, browser evidence, engine-gap registry и prove-протокол;
 - строгий Codex CLI с единственным MCP-сервером.
+- универсальный MCP prompt `new_test` и генератор конфигурации для локальных ИИ-клиентов.
 
 ## Ограничения и дальнейшее развитие
 

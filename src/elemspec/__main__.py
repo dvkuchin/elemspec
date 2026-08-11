@@ -77,6 +77,9 @@ def разобрать_аргументы(аргументы: list[str] | None =
     интеграция.add_argument(
         "--force", action="store_true", help="заменить конфликтующую интеграцию"
     )
+    команды.add_parser(
+        "mcp-config", help="вывести JSON для подключения ElemSpec через интерфейс ИИ"
+    )
     return парсер.parse_args(аргументы)
 
 
@@ -226,6 +229,17 @@ def main(аргументы: list[str] | None = None) -> int:
             if опции.optional_project:
                 аргументы_mcp.append("--optional-project")
             return mcp_main(аргументы_mcp)
+        if опции.команда == "mcp-config":
+            from .integration import конфигурация_mcp
+
+            print(
+                json.dumps(
+                    конфигурация_mcp(опции.project),
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+            return 0
         if опции.команда == "integrate":
             from .integration import (
                 ОшибкаИнтеграции,

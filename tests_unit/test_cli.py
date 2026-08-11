@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import io
+import json
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 
 from elemspec.__main__ import main
@@ -38,6 +41,14 @@ class CLITest(unittest.TestCase):
                 "https://example.test",
             ])
         self.assertEqual(2, код)
+
+    def test_mcp_config_печатает_готовый_json(self) -> None:
+        вывод = io.StringIO()
+        with redirect_stdout(вывод):
+            код = main(["mcp-config"])
+        данные = json.loads(вывод.getvalue())
+        self.assertEqual(0, код)
+        self.assertEqual("stdio", данные["mcpServers"]["elemspec"]["type"])
 
 
 if __name__ == "__main__":

@@ -3,11 +3,18 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
+from os import environ
 from pathlib import Path
+from unittest.mock import patch
 
 from mcp import Client
 
-from elemspec.agent_mcp import MCPRuntime, ВЕРСИЯ_MCP_API, создать_mcp
+from elemspec.agent_mcp import (
+    MCPRuntime,
+    ВЕРСИЯ_MCP_API,
+    корень_mcp,
+    создать_mcp,
+)
 
 
 class MCPСерверTest(unittest.IsolatedAsyncioTestCase):
@@ -45,6 +52,19 @@ class MCPСерверTest(unittest.IsolatedAsyncioTestCase):
             },
             имена,
         )
+
+    async def test_публикует_канонический_prompt_нового_теста(self) -> None:
+        async with Client(self.сервер, raise_exceptions=True) as клиент:
+            prompts = await клиент.list_prompts()
+            ответ = await клиент.get_prompt(
+                "new_test", {"сценарий": "Проверить вход пользователя"}
+            )
+
+        self.assertEqual(["new_test"], [prompt.name for prompt in prompts.prompts])
+        текст = ответ.messages[0].content.text
+        self.assertIn("Проверить вход пользователя", текст)
+        self.assertIn("get_contract", текст)
+        self.assertIn("prove_test", текст)
 
     async def test_контракт_возвращает_версии_и_хосты(self) -> None:
         async with Client(self.сервер, raise_exceptions=True) as клиент:
@@ -91,6 +111,18 @@ class ГлобальныйMCPСерверTest(unittest.IsolatedAsyncioTestCase):
                 self.assertIn("elemspec.toml", ответ.content[0].text)
             finally:
                 среда.закрыть()
+
+
+class КореньMCPTest(unittest.TestCase):
+    def test_приоритет_явного_проекта_над_окружением(self) -> None:
+        with patch.dict(environ, {"ELEMSPEC_PROJECT": "/env/project"}, clear=True):
+            self.assertEqual(Path("/explicit"), корень_mcp(Path("/explicit")))
+
+    def test_понимает_каталог_проекта_claude(self) -> None:
+        with patch.dict(
+            environ, {"CLAUDE_PROJECT_DIR": "/claude/project"}, clear=True
+        ):
+            self.assertEqual(Path("/claude/project"), корень_mcp())
 
 
 if __name__ == "__main__":

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import atexit
 import json
+import os
 import queue
 import subprocess
 import sys
@@ -29,12 +30,24 @@ from .agent import (
     проверить_черновик,
 )
 from .agent_gaps import зарегистрировать
+from .agent_prompt import новый_тест_prompt
 from .agent_proof import доказать_красный
 from .agent_sessions import применить, подготовить, открыть_сессию
 from .project import ПолитикаХостов, Проект
 
 
 ВЕРСИЯ_MCP_API = "0.1.0-dev.0"
+
+
+def корень_mcp(явный: Path | None = None) -> Path:
+    """Определить проект из аргумента, окружения клиента или cwd."""
+    return явный or Path(
+        os.environ.get("ELEMSPEC_PROJECT")
+        or os.environ.get("CLAUDE_PROJECT_DIR")
+        or Path.cwd()
+    )
+
+
 ТАЙМАУТ_BROWSER_С = 90
 ИМЕНА_MCP_ИНСТРУМЕНТОВ = (
     "get_contract",
@@ -228,11 +241,9 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
     сервер = MCPServer(
         "elemspec-agent",
         version=__version__,
-        instructions=(
-            "Author elemspec UI tests only through these tools. Start with "
-            "get_contract, use browser evidence before prepare_draft, and call "
-            "prove_test only after the draft is applied."
-        ),
+        # Клиенты без меню MCP prompts всё равно получают тот же строгий процесс
+        # через стандартное поле ServerCapabilities.instructions.
+        instructions=новый_тест_prompt(),
     )
     чтение = ToolAnnotations(readOnlyHint=True, openWorldHint=False)
     запись = ToolAnnotations(
@@ -247,6 +258,17 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
         idempotentHint=False,
         openWorldHint=True,
     )
+
+    @сервер.prompt(
+        name="new_test",
+        title="Новый UI-тест ElemSpec",
+        description=(
+            "Преобразовать сценарий на естественном языке в исследованный, "
+            "валидированный и доказанный feature-тест ElemSpec"
+        ),
+    )
+    def новый_тест(сценарий: str = "") -> str:
+        return новый_тест_prompt(сценарий)
 
     @сервер.tool(annotations=чтение)
     def get_contract() -> dict[str, Any]:
@@ -374,10 +396,12 @@ def main(аргументы: list[str] | None = None) -> int:
     import argparse
 
     парсер = argparse.ArgumentParser(prog="elemspec-mcp")
-    парсер.add_argument("--project", type=Path, default=Path.cwd())
+    парсер.add_argument("--project", type=Path)
     парсер.add_argument("--optional-project", action="store_true")
     опции = парсер.parse_args(аргументы)
-    среда = MCPRuntime(опции.project, optional_project=опции.optional_project)
+    среда = MCPRuntime(
+        корень_mcp(опции.project), optional_project=опции.optional_project
+    )
     сервер = создать_mcp(среда)
     atexit.register(среда.закрыть)
     сервер.run()

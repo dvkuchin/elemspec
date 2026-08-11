@@ -144,15 +144,30 @@ def _прочитать_mcp(codex: str) -> dict[str, Any] | None:
     )
 
 
-def _команда_mcp() -> tuple[str, list[str]]:
+def _команда_mcp(проект: Path | None = None) -> tuple[str, list[str]]:
     # Нельзя resolve(): bin/python в venv/pipx часто является symlink на системный
     # Python, а MCP должен запускаться именно внутри окружения с пакетом ElemSpec.
-    return str(Path(sys.executable).absolute()), [
-        "-m",
-        "elemspec",
-        "mcp",
-        "--optional-project",
-    ]
+    аргументы = ["-m", "elemspec"]
+    if проект is not None:
+        аргументы.extend(["--project", str(проект.expanduser().resolve())])
+    аргументы.append("mcp")
+    if проект is None:
+        аргументы.append("--optional-project")
+    return str(Path(sys.executable).absolute()), аргументы
+
+
+def конфигурация_mcp(проект: Path | None = None) -> dict[str, Any]:
+    """Вернуть переносимый JSON-блок для интерфейса локального MCP-клиента."""
+    команда, аргументы = _команда_mcp(проект)
+    return {
+        "mcpServers": {
+            "elemspec": {
+                "type": "stdio",
+                "command": команда,
+                "args": аргументы,
+            }
+        }
+    }
 
 
 def _наш_mcp(данные: dict[str, Any] | None) -> bool:
