@@ -46,16 +46,18 @@ Python-зависимости из [pyproject.toml](../pyproject.toml):
 Установите системные инструменты, если их ещё нет:
 
 ```bash
-brew install git python@3.11 pipx
-pipx ensurepath
+brew install git python@3.11
+python3 -m pip install --user --upgrade pipx
+python3 -m pipx ensurepath
 ```
 
-Перезапустите терминал. Клонируйте ElemSpec и установите checkout:
+Такой способ не заставляет Homebrew собирать дополнительные версии Python и CMake
+только ради `pipx`. Перезапустите терминал. Клонируйте ElemSpec и установите checkout:
 
 ```bash
 git clone https://github.com/dvkuchin/elemspec.git
 cd elemspec
-pipx install .
+pipx install --python python3.11 .
 elemspec install-browser
 elemspec --version
 ```
@@ -63,7 +65,7 @@ elemspec --version
 После публикации вместо checkout будет доступно:
 
 ```bash
-pipx install elemspec
+pipx install --python python3.11 elemspec
 ```
 
 ## Linux
