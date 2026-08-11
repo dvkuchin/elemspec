@@ -31,7 +31,7 @@ from .agent import (
 from .agent_gaps import зарегистрировать
 from .agent_proof import доказать_красный
 from .agent_sessions import применить, подготовить, открыть_сессию
-from .project import Проект
+from .project import ПолитикаХостов, Проект
 
 
 ВЕРСИЯ_MCP_API = "0.1.0-dev.0"
@@ -136,16 +136,44 @@ class _BrowserProcess:
 class MCPRuntime:
     """Проектные пути и живые browser-процессы одного MCP-сервера."""
 
-    def __init__(self, корень: Path) -> None:
-        проект = Проект.найти(корень)
-        self.корень = проект.корень
-        self.тесты = проект.тесты
-        self.сессии = проект.состояние / "sessions"
-        self.разведки = проект.состояние / "discoveries"
-        self.отчёты = проект.отчёты
-        self.политика = проект.политика
+    def __init__(self, корень: Path, optional_project: bool = False) -> None:
+        self._старт = корень
+        self._проект: Проект | None = None
+        if not optional_project:
+            self._найти_проект()
         self._browsers: dict[str, _BrowserProcess] = {}
         self._lock = threading.Lock()
+
+    def _найти_проект(self) -> Проект:
+        if self._проект is None:
+            self._проект = Проект.найти(self._старт)
+        return self._проект
+
+    @property
+    def корень(self) -> Path:
+        return self._найти_проект().корень
+
+    @property
+    def тесты(self) -> Path:
+        return self._найти_проект().тесты
+
+    @property
+    def сессии(self) -> Path:
+        проект = self._найти_проект()
+        return проект.состояние / "sessions"
+
+    @property
+    def разведки(self) -> Path:
+        проект = self._найти_проект()
+        return проект.состояние / "discoveries"
+
+    @property
+    def отчёты(self) -> Path:
+        return self._найти_проект().отчёты
+
+    @property
+    def политика(self) -> ПолитикаХостов:
+        return self._найти_проект().политика
 
     def начать_browser(self, url: str) -> dict[str, Any]:
         id_сессии = str(uuid.uuid4())
@@ -347,8 +375,9 @@ def main(аргументы: list[str] | None = None) -> int:
 
     парсер = argparse.ArgumentParser(prog="elemspec-mcp")
     парсер.add_argument("--project", type=Path, default=Path.cwd())
+    парсер.add_argument("--optional-project", action="store_true")
     опции = парсер.parse_args(аргументы)
-    среда = MCPRuntime(опции.project)
+    среда = MCPRuntime(опции.project, optional_project=опции.optional_project)
     сервер = создать_mcp(среда)
     atexit.register(среда.закрыть)
     сервер.run()

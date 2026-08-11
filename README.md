@@ -11,7 +11,7 @@ Wheel уже собирается; публикация в PyPI ещё не вы
 
 ## Статус
 
-- Текущая версия: **`0.3.0.dev0`**.
+- Текущая версия: **`0.4.0.dev0`**.
 - Проект до первого стабильного релиза: интерфейсы и форматы можно менять без
   слоя обратной совместимости.
 - Основная проверенная среда — macOS. Linux и Windows включены в CI-матрицу, но
@@ -63,7 +63,8 @@ _reports/<дата>/report.{json,html} + снимки/видео
 - `elemspec` — основной CLI-исполнитель;
 - `src/elemspec/` — Python-пакет движка и агентского ядра;
 - `elemspec mcp` — stdio MCP-транспорт доверенного агентского ядра;
-- `.agents/skills/new-test/` — процесс диалога и оркестрации;
+- `$CODEX_HOME/skills/new-test/` — установленный процесс диалога и оркестрации;
+- `elemspec integrate codex` — установка/проверка пользовательского skill и MCP;
 - `elemspec author` — отдельный строгий Codex CLI без shell и произвольной записи;
 - `elemspec.toml` — точный allowlist hostname для движка и browser-разведки;
 - `tests/` — версионируемые тесты в независимом проекте пользователя;
@@ -86,6 +87,7 @@ _reports/<дата>/report.{json,html} + снимки/видео
 ```bash
 pipx install .
 elemspec install-browser
+elemspec integrate codex
 elemspec --version
 elemspec --project examples/getting-started run smoke
 ```
@@ -161,8 +163,16 @@ tests/<имя>/
 
 ## ИИ-автор тестов
 
-Строгий режим запускает отдельный Codex CLI с `read-only` sandbox и единственным пишущим
-каналом — `elemspec mcp`:
+Для обычной задачи Codex один раз установите пользовательский skill и MCP:
+
+```bash
+elemspec integrate codex
+elemspec integrate codex --check
+```
+
+После этого откройте проект тестов как рабочий корень новой задачи и вызовите
+`$new-test`. Для технически строгого режима отдельный Codex CLI запускается с
+`read-only` sandbox и единственным пишущим каналом — `elemspec mcp`:
 
 ```bash
 elemspec author check

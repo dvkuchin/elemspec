@@ -52,12 +52,31 @@ def разобрать_аргументы(аргументы: list[str] | None =
     создание.add_argument("--host", action="append", required=True, help="разрешённый hostname")
 
     команды.add_parser("doctor", help="проверить проект и установленный Chromium")
-    команды.add_parser("mcp", help="запустить stdio MCP для выбранного проекта")
+    mcp = команды.add_parser("mcp", help="запустить stdio MCP для выбранного проекта")
+    mcp.add_argument(
+        "--optional-project",
+        action="store_true",
+        help="запустить сервер вне проекта и найти его при первом вызове",
+    )
     автор = команды.add_parser("author", help="запустить строгого ИИ-автора")
     автор.add_argument("action", choices=["setup", "check", "cli", "exec"], nargs="?", default="cli")
     автор.add_argument("prompt", nargs="*")
     браузер = команды.add_parser("install-browser", help="установить Chromium Playwright")
     браузер.add_argument("--with-deps", action="store_true", help="установить системные зависимости Linux")
+    интеграция = команды.add_parser(
+        "integrate", help="подключить skill и MCP к ИИ-агенту"
+    )
+    интеграция.add_argument("agent", choices=["codex"])
+    действие_интеграции = интеграция.add_mutually_exclusive_group()
+    действие_интеграции.add_argument(
+        "--check", action="store_true", help="только проверить"
+    )
+    действие_интеграции.add_argument(
+        "--remove", action="store_true", help="удалить интеграцию ElemSpec"
+    )
+    интеграция.add_argument(
+        "--force", action="store_true", help="заменить конфликтующую интеграцию"
+    )
     return парсер.parse_args(аргументы)
 
 
@@ -201,8 +220,32 @@ def main(аргументы: list[str] | None = None) -> int:
         if опции.команда == "mcp":
             from .agent_mcp import main as mcp_main
 
-            проект = _проект(опции)
-            return mcp_main(["--project", str(проект.корень)])
+            аргументы_mcp: list[str] = []
+            if опции.project is not None:
+                аргументы_mcp.extend(["--project", str(опции.project)])
+            if опции.optional_project:
+                аргументы_mcp.append("--optional-project")
+            return mcp_main(аргументы_mcp)
+        if опции.команда == "integrate":
+            from .integration import (
+                ОшибкаИнтеграции,
+                интегрировать_codex,
+                проверить_codex,
+                удалить_интеграцию_codex,
+            )
+
+            try:
+                if опции.check:
+                    результат = проверить_codex()
+                elif опции.remove:
+                    результат = удалить_интеграцию_codex(force=опции.force)
+                else:
+                    результат = интегрировать_codex(force=опции.force)
+            except ОшибкаИнтеграции as ошибка:
+                print(f"Ошибка интеграции: {ошибка}", file=sys.stderr)
+                return 2
+            print(json.dumps(результат, ensure_ascii=False, indent=2))
+            return 0 if опции.remove or результат["ready"] else 1
         if опции.команда == "author":
             from .agent_authoring import main as author_main
 

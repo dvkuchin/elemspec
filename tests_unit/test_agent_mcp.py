@@ -77,5 +77,21 @@ class MCPСерверTest(unittest.IsolatedAsyncioTestCase):
         self.assertIn("locator_kind и value", ответ.content[0].text)
 
 
+class ГлобальныйMCPСерверTest(unittest.IsolatedAsyncioTestCase):
+    async def test_стартует_вне_проекта_и_возвращает_tool_error(self) -> None:
+        with tempfile.TemporaryDirectory() as временный:
+            среда = MCPRuntime(Path(временный), optional_project=True)
+            сервер = создать_mcp(среда)
+            try:
+                async with Client(сервер, raise_exceptions=True) as клиент:
+                    инструменты = await клиент.list_tools()
+                    ответ = await клиент.call_tool("get_contract", {})
+                self.assertTrue(инструменты.tools)
+                self.assertTrue(ответ.is_error)
+                self.assertIn("elemspec.toml", ответ.content[0].text)
+            finally:
+                среда.закрыть()
+
+
 if __name__ == "__main__":
     unittest.main()

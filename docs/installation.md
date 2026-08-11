@@ -15,6 +15,19 @@ elemspec install-browser
 elemspec --version
 ```
 
+Чтобы создавать тесты из обычной задачи Codex, один раз установите пользовательский
+skill `$new-test` и зарегистрируйте MCP-сервер ElemSpec:
+
+```bash
+elemspec integrate codex
+elemspec integrate codex --check
+```
+
+После установки создайте новую задачу Codex: список навыков и MCP-инструментов
+формируется при её открытии. Повторный `integrate codex` безопасно обновляет установку,
+которой управляет ElemSpec. Чужой одноимённый skill или MCP без явного `--force` не
+перезаписывается.
+
 ## Поддерживаемые среды
 
 - macOS — основная проверенная среда;
@@ -158,8 +171,17 @@ elemspec --project examples/getting-started run smoke
 
 ## ИИ-автор тестов
 
-Для выполнения готовых feature-тестов Codex не нужен. Для строгого `$new-test`
-нужны установленный и авторизованный Codex CLI либо встроенный CLI ChatGPT desktop.
+Для выполнения готовых feature-тестов Codex не нужен. Для создания тестов через
+`$new-test` нужны установленный и авторизованный Codex CLI либо ChatGPT desktop.
+
+Удобный режим обычной задачи устанавливается один раз на компьютере:
+
+```bash
+elemspec integrate codex
+```
+
+Откройте каталог проекта тестов как рабочий корень Codex и создайте новую задачу.
+Для технически изолированного режима используйте строгого автора:
 
 ```bash
 elemspec author check
@@ -205,21 +227,29 @@ elemspec install-browser
 ```
 
 Из Git URL или локального checkout используйте `pipx reinstall elemspec` либо
-повторную установку с `--force`.
+повторную установку с `--force`. После обновления повторите установку skill, чтобы
+его версия совпадала с движком:
+
+```bash
+elemspec integrate codex
+```
 
 Удаление:
 
 ```bash
+elemspec integrate codex --remove
 pipx uninstall elemspec
 ```
 
-Проекты feature-тестов и отчёты при этом не удаляются.
+Первая команда удаляет только skill и MCP, установленные самим ElemSpec. Проекты
+feature-тестов и отчёты при этом не удаляются.
 
 ## Диагностика
 
 ```bash
 elemspec doctor
 elemspec --version
+elemspec integrate codex --check
 ```
 
 `doctor` проверяет найденный `elemspec.toml`, каталог тестов и Chromium. Если
