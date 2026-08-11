@@ -1,0 +1,5 @@
+[project]
+name = "elemspec-getting-started"
+
+[hosts]
+allowed = ["example.com"]

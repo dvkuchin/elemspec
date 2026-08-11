@@ -1,0 +1,10 @@
+interface:
+  display_name: "Новый UI-тест elemspec"
+  short_description: "Собрать доказанный Gherkin-тест из сценария"
+  default_prompt: "Use $new-test to turn my UI scenario into a validated elemspec test."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "elemspec"
+      description: "Доверенное ядро автора и исполнителя UI-тестов elemspec"
+      transport: "stdio"

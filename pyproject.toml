@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "elemspec"
+dynamic = ["version"]
+description = "Executable UI specifications for 1C:Enterprise Element applications"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+  "playwright==1.49.1",
+  "gherkin-official==41.0.0",
+  "mcp==2.0.0",
+]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Environment :: Console",
+  "Operating System :: MacOS",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/dvkuchin/elemspec"
+Repository = "https://github.com/dvkuchin/elemspec"
+Issues = "https://github.com/dvkuchin/elemspec/issues"
+
+[project.scripts]
+elemspec = "elemspec.__main__:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "elemspec.version.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+elemspec = [
+  "resources/*.json",
+  "resources/skill/new-test/*.md",
+  "resources/skill/new-test/agents/*.yaml",
+  "resources/skill/new-test/references/*.md",
+]

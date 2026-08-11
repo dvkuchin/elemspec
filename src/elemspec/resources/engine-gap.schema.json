@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://elemspec.local/schemas/engine-gap-1.json",
+  "title": "ТЗ на недостающую возможность DSL elemspec",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "версия_схемы",
+    "создано_для_dsl",
+    "id",
+    "статус",
+    "предлагаемая_фраза",
+    "назначение",
+    "проверено_в_приложении",
+    "семантика",
+    "ожидание",
+    "примеры",
+    "критерии_готовности",
+    "связанные_тесты",
+    "реализация"
+  ],
+  "properties": {
+    "версия_схемы": { "const": "1" },
+    "создано_для_dsl": { "type": "string", "minLength": 1 },
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "статус": { "enum": ["planned", "in_progress", "done"] },
+    "предлагаемая_фраза": { "type": "string", "minLength": 1 },
+    "назначение": { "type": "string", "minLength": 1 },
+    "проверено_в_приложении": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["поведение", "локаторы"],
+      "properties": {
+        "поведение": { "type": "string", "minLength": 1 },
+        "локаторы": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "аргументы": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "семантика": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ок", "провал", "сломан"],
+      "properties": {
+        "ок": { "type": "string", "minLength": 1 },
+        "провал": { "type": "string", "minLength": 1 },
+        "сломан": { "type": "string", "minLength": 1 }
+      }
+    },
+    "ожидание": { "type": "string", "minLength": 1 },
+    "примеры": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["позитивный", "негативный", "неоднозначный"],
+      "properties": {
+        "позитивный": { "type": "string", "minLength": 1 },
+        "негативный": { "type": "string", "minLength": 1 },
+        "неоднозначный": { "type": "string", "minLength": 1 }
+      }
+    },
+    "критерии_готовности": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "связанные_тесты": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "реализация": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["версия_dsl", "commit"],
+      "properties": {
+        "версия_dsl": { "type": "string", "minLength": 1 },
+        "commit": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}
