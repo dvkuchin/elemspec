@@ -170,11 +170,11 @@ def конфигурация_mcp(проект: Path | None = None) -> dict[str, 
     }
 
 
-def _наш_mcp(данные: dict[str, Any] | None) -> bool:
+def _наш_mcp(данные: dict[str, Any] | None, проект: Path | None = None) -> bool:
     if данные is None:
         return False
     transport = данные.get("transport", {})
-    команда, аргументы = _команда_mcp()
+    команда, аргументы = _команда_mcp(проект)
     return (
         transport.get("type") == "stdio"
         and transport.get("command") == команда
@@ -182,9 +182,11 @@ def _наш_mcp(данные: dict[str, Any] | None) -> bool:
     )
 
 
-def _установить_mcp(codex: str, force: bool) -> None:
+def _установить_mcp(
+    codex: str, force: bool, проект: Path | None = None
+) -> None:
     существующий = _прочитать_mcp(codex)
-    if _наш_mcp(существующий):
+    if _наш_mcp(существующий, проект):
         return
     if существующий is not None and not force:
         raise ОшибкаИнтеграции(
@@ -198,7 +200,7 @@ def _установить_mcp(codex: str, force: bool) -> None:
         if удаление.returncode != 0:
             raise ОшибкаИнтеграции("Codex не смог удалить старый MCP elemspec")
 
-    команда, аргументы = _команда_mcp()
+    команда, аргументы = _команда_mcp(проект)
     добавление = subprocess.run(
         [codex, "mcp", "add", "elemspec", "--", команда, *аргументы],
         check=False,
@@ -207,11 +209,13 @@ def _установить_mcp(codex: str, force: bool) -> None:
         raise ОшибкаИнтеграции("Codex не смог зарегистрировать MCP elemspec")
 
 
-def _удалить_mcp(codex: str, force: bool) -> None:
+def _удалить_mcp(
+    codex: str, force: bool, проект: Path | None = None
+) -> None:
     существующий = _прочитать_mcp(codex)
     if существующий is None:
         return
-    if not (_наш_mcp(существующий) or force):
+    if not (_наш_mcp(существующий, проект) or force):
         raise ОшибкаИнтеграции(
             "MCP-сервер 'elemspec' зарегистрирован другой командой; "
             "проверьте его или повторите с --force"
@@ -223,7 +227,7 @@ def _удалить_mcp(codex: str, force: bool) -> None:
         raise ОшибкаИнтеграции("Codex не смог удалить MCP elemspec")
 
 
-def проверить_codex() -> dict[str, Any]:
+def проверить_codex(проект: Path | None = None) -> dict[str, Any]:
     """Проверить глобальные skill и MCP без изменения конфигурации."""
     skill = _codex_home() / "skills" / "new-test"
     codex = _codex()
@@ -232,12 +236,17 @@ def проверить_codex() -> dict[str, Any]:
         "agent": "codex",
         "skill_path": str(skill),
         "skill_installed": _наш_skill(skill),
-        "mcp_installed": _наш_mcp(mcp),
-        "ready": _наш_skill(skill) and _наш_mcp(mcp),
+        "mcp_installed": _наш_mcp(mcp, проект),
+        "mcp_project": (
+            str(проект.expanduser().resolve()) if проект is not None else None
+        ),
+        "ready": _наш_skill(skill) and _наш_mcp(mcp, проект),
     }
 
 
-def интегрировать_codex(force: bool = False) -> dict[str, Any]:
+def интегрировать_codex(
+    force: bool = False, проект: Path | None = None
+) -> dict[str, Any]:
     """Установить пользовательский $new-test и stdio MCP ElemSpec для Codex."""
     skill = _codex_home() / "skills" / "new-test"
     codex = _codex()
@@ -251,17 +260,23 @@ def интегрировать_codex(force: bool = False) -> dict[str, Any]:
             f"{skill} уже существует и не помечен как установка ElemSpec; "
             "проверьте его или повторите с --force"
         )
-    if существующий_mcp is not None and not _наш_mcp(существующий_mcp) and not force:
+    if (
+        существующий_mcp is not None
+        and not _наш_mcp(существующий_mcp, проект)
+        and not force
+    ):
         raise ОшибкаИнтеграции(
             "MCP-сервер 'elemspec' уже зарегистрирован другой командой; "
             "проверьте его или повторите с --force"
         )
     _установить_skill(skill, force)
-    _установить_mcp(codex, force)
-    return проверить_codex()
+    _установить_mcp(codex, force, проект)
+    return проверить_codex(проект)
 
 
-def удалить_интеграцию_codex(force: bool = False) -> dict[str, Any]:
+def удалить_интеграцию_codex(
+    force: bool = False, проект: Path | None = None
+) -> dict[str, Any]:
     """Удалить только управляемые ElemSpec пользовательские skill и MCP."""
     skill = _codex_home() / "skills" / "new-test"
     codex = _codex()
@@ -275,11 +290,15 @@ def удалить_интеграцию_codex(force: bool = False) -> dict[str, 
             f"{skill} не помечен как установка ElemSpec; "
             "проверьте его или повторите с --force"
         )
-    if существующий_mcp is not None and not _наш_mcp(существующий_mcp) and not force:
+    if (
+        существующий_mcp is not None
+        and not _наш_mcp(существующий_mcp, проект)
+        and not force
+    ):
         raise ОшибкаИнтеграции(
             "MCP-сервер 'elemspec' зарегистрирован другой командой; "
             "проверьте его или повторите с --force"
         )
-    _удалить_mcp(codex, force)
+    _удалить_mcp(codex, force, проект)
     _удалить_skill(skill, force)
-    return {**проверить_codex(), "removed": True}
+    return {**проверить_codex(проект), "removed": True}

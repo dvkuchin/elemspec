@@ -198,6 +198,13 @@ elemspec author cli
 elemspec author exec "Создай тест ..."
 ```
 
+Если Codex открыт в родительском каталоге, жёстко привяжите MCP к проекту тестов и
+после установки создайте новую задачу:
+
+```bash
+elemspec --project /absolute/path/to/my-specs integrate codex --force
+```
+
 Навык `$new-test`:
 
 1. получает машинный контракт DSL и allowlist hostname;

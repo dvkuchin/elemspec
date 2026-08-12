@@ -250,11 +250,15 @@ def main(аргументы: list[str] | None = None) -> int:
 
             try:
                 if опции.check:
-                    результат = проверить_codex()
+                    результат = проверить_codex(опции.project)
                 elif опции.remove:
-                    результат = удалить_интеграцию_codex(force=опции.force)
+                    результат = удалить_интеграцию_codex(
+                        force=опции.force, проект=опции.project
+                    )
                 else:
-                    результат = интегрировать_codex(force=опции.force)
+                    результат = интегрировать_codex(
+                        force=опции.force, проект=опции.project
+                    )
             except ОшибкаИнтеграции as ошибка:
                 print(f"Ошибка интеграции: {ошибка}", file=sys.stderr)
                 return 2

@@ -10,6 +10,7 @@ from unittest.mock import patch
 from elemspec.integration import (
     ОшибкаИнтеграции,
     _команда_mcp,
+    _наш_mcp,
     _наш_skill,
     _удалить_skill,
     _установить_mcp,
@@ -112,6 +113,47 @@ class CodexИнтеграцияTest(unittest.TestCase):
             ["-m", "elemspec", "--project", ожидаемый, "mcp"],
             аргументы,
         )
+
+    def test_регистрирует_mcp_с_явной_привязкой_к_проекту(self) -> None:
+        with tempfile.TemporaryDirectory() as временный:
+            проект = Path(временный)
+            команда, аргументы = _команда_mcp(проект)
+            отсутствует = CompletedProcess(
+                [], 1, "", "Error: No MCP server named 'elemspec' found."
+            )
+            добавлен = CompletedProcess([], 0, "Added", "")
+            with patch(
+                "elemspec.integration.subprocess.run",
+                side_effect=[отсутствует, добавлен],
+            ) as run:
+                _установить_mcp("/bin/codex", force=False, проект=проект)
+
+        self.assertEqual(
+            [
+                "/bin/codex",
+                "mcp",
+                "add",
+                "elemspec",
+                "--",
+                команда,
+                *аргументы,
+            ],
+            run.call_args_list[1].args[0],
+        )
+
+    def test_проверяет_mcp_для_того_же_явного_проекта(self) -> None:
+        with tempfile.TemporaryDirectory() as временный:
+            проект = Path(временный)
+            команда, аргументы = _команда_mcp(проект)
+            данные = {
+                "transport": {
+                    "type": "stdio",
+                    "command": команда,
+                    "args": аргументы,
+                }
+            }
+            self.assertTrue(_наш_mcp(данные, проект))
+            self.assertFalse(_наш_mcp(данные))
 
     def test_не_затирает_чужой_mcp(self) -> None:
         чужой = CompletedProcess(

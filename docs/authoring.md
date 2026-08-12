@@ -36,6 +36,15 @@ elemspec integrate codex --check
 и напишите `Используй $new-test`. Skill требует работать только через MCP ElemSpec,
 но shell и другие инструменты обычной задачи остаются технически доступными.
 
+Если задача открыта в родительском рабочем каталоге, закрепите проект в MCP явно:
+
+```bash
+elemspec --project /absolute/path/to/my-specs integrate codex --force
+elemspec --project /absolute/path/to/my-specs integrate codex --check
+```
+
+После изменения MCP-конфигурации создайте новую задачу Codex.
+
 ## Строгий запуск
 
 `.elemspec/authoring/` внутри выбранного проекта тестов — генерируемый рабочий

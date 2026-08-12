@@ -30,6 +30,18 @@ elemspec integrate codex
 elemspec integrate codex --check
 ```
 
+Обычно MCP находит `elemspec.toml` относительно рабочего корня новой задачи. Если
+Codex открыт в родительском каталоге либо вы хотите жёстко закрепить один проект
+тестов, установите интеграцию с абсолютным путём:
+
+```bash
+elemspec --project /absolute/path/to/my-specs integrate codex --force
+elemspec --project /absolute/path/to/my-specs integrate codex --check
+```
+
+В один момент времени имя MCP `elemspec` привязано только к одной конфигурации.
+Повторная команда с `--force` осознанно переключает его на другой проект.
+
 После подключения создайте новую задачу: список prompts, навыков и MCP-инструментов
 формируется при её открытии. Повторный `integrate codex` безопасно обновляет установку,
 которой управляет ElemSpec. Чужой одноимённый skill или MCP без явного `--force` не
@@ -205,6 +217,12 @@ Codex имеет дополнительный удобный режим:
 elemspec integrate codex
 ```
 
+Если рабочим корнем Codex будет не сам проект тестов, сразу закрепите его явно:
+
+```bash
+elemspec --project /absolute/path/to/my-specs integrate codex --force
+```
+
 Откройте каталог проекта тестов как рабочий корень Codex и создайте новую задачу.
 Для технически изолированного режима используйте строгого автора:
 
@@ -279,6 +297,8 @@ elemspec integrate codex --check
 
 `doctor` проверяет найденный `elemspec.toml`, каталог тестов и Chromium. Если
 проект не найден, перейдите в его каталог или используйте `--project`.
+Параметр `--project` ставится перед подкомандой, например
+`elemspec --project /path/to/specs integrate codex --check`.
 
 Если Chromium отсутствует:
 
