@@ -70,14 +70,18 @@ class АгентскийБраузер:
 
     def __enter__(self) -> "АгентскийБраузер":
         self._playwright = sync_playwright().start()
-        self._браузер = self._playwright.chromium.launch(headless=self.headless)
-        self._контекст = self._браузер.new_context(
-            viewport={"width": self.ширина, "height": self.высота}
-        )
-        self._контекст.route("**/*", self._ограничитель)
-        self._страница = self._контекст.new_page()
-        self._страница.set_default_timeout(30_000)
-        return self
+        try:
+            self._браузер = self._playwright.chromium.launch(headless=self.headless)
+            self._контекст = self._браузер.new_context(
+                viewport={"width": self.ширина, "height": self.высота}
+            )
+            self._контекст.route("**/*", self._ограничитель)
+            self._страница = self._контекст.new_page()
+            self._страница.set_default_timeout(30_000)
+            return self
+        except Exception:
+            self.__exit__()
+            raise
 
     def __exit__(self, *_ошибка) -> None:
         if self._контекст is not None:

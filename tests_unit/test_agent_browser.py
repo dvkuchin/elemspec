@@ -4,6 +4,7 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 from elemspec.actions import Контекст, ОшибкаДействия, получить
 from elemspec.agent_browser import АгентскийБраузер, это_автоимя
@@ -49,6 +50,19 @@ class _RedirectОтвет:
 
 
 class АгентскийБраузерTest(unittest.TestCase):
+    def test_останавливает_playwright_если_chromium_не_запустился(self) -> None:
+        менеджер = MagicMock()
+        playwright = менеджер.start.return_value
+        playwright.chromium.launch.side_effect = RuntimeError("browser crashed")
+        политика = ПолитикаХостов(frozenset({"example.test"}))
+        with (
+            patch("elemspec.agent_browser.sync_playwright", return_value=менеджер),
+            self.assertRaisesRegex(RuntimeError, "browser crashed"),
+        ):
+            with АгентскийБраузер(политика):
+                pass
+        playwright.stop.assert_called_once_with()
+
     @unittest.skipUnless(
         os.environ.get("ELEMPWT_BROWSER_TESTS") == "1",
         "запуск Chromium требует отдельного разрешения среды",
