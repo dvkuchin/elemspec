@@ -94,6 +94,9 @@ elemspec mcp-config
 elemspec --project examples/getting-started run smoke
 ```
 
+В исходную поставку также входит [живой пример DemoCRM](examples/demoCRM/README.md) -
+тест вендорского демонстрационного приложения на 1С:Предприя.Элемент.
+
 ## Запуск feature-тестов
 
 ```bash

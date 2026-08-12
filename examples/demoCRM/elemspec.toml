@@ -1,0 +1,12 @@
+[project]
+name = "DemoCRM vendor example"
+tests_dir = "tests"
+reports_dir = "_reports"
+state_dir = ".elemspec"
+gaps_dir = "engine-gaps"
+
+[hosts]
+allowed = [
+  "app-696041216.1cmycloud.com",
+  "auth.1cmycloud.com",
+]

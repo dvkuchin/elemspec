@@ -26,6 +26,7 @@ class ДокументацияTest(unittest.TestCase):
             "CONTRIBUTING.md",
             "SECURITY.md",
             "pyproject.toml",
+            "MANIFEST.in",
         ):
             self.assertTrue((КОРЕНЬ / имя).is_file(), имя)
 
@@ -78,6 +79,24 @@ class ДокументацияTest(unittest.TestCase):
         scripts = project["scripts"]
         self.assertEqual("elemspec.__main__:main", scripts["elemspec"])
         self.assertEqual("MIT", project["license"])
+
+    def test_demoCRM_входит_в_исходную_поставку(self) -> None:
+        пример = КОРЕНЬ / "examples" / "demoCRM"
+        for путь in (
+            пример / "README.md",
+            пример / "elemspec.toml",
+            пример / "tests" / "democrm-smoke" / "init.json",
+            пример / "tests" / "democrm-smoke" / "test.feature",
+        ):
+            self.assertTrue(путь.is_file(), путь)
+        self.assertIn(
+            "graft examples",
+            (КОРЕНЬ / "MANIFEST.in").read_text(encoding="utf-8"),
+        )
+        self.assertIn(
+            "prune examples/demoCRM/_reports",
+            (КОРЕНЬ / "MANIFEST.in").read_text(encoding="utf-8"),
+        )
 
 
 if __name__ == "__main__":
