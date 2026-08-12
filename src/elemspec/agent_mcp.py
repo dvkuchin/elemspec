@@ -363,7 +363,7 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
         ],
         ref: str | None = None,
         locator_kind: Literal[
-            "элемент", "поле", "пункт навигации", "текст", "селектор"
+            "элемент", "поле", "команда", "пункт навигации", "текст", "селектор"
         ] | None = None,
         value: str | None = None,
         table: str | None = None,

@@ -72,6 +72,10 @@ class АгентскийБраузерTest(unittest.TestCase):
                 '<div data-component="table-cell">'
                 '<div data-testid="Регион">Москва</div></div>'
                 '</div></div></div>'
+                '<div data-testid="write-and-close-command" '
+                'data-component="button" '
+                'onclick="this.dataset.clicked=\'yes\'">'
+                '<span data-component="label">Готово</span></div>'
                 '<a href="/next">Продолжить</a>'
                 '<div data-component="navigation-item" '
                 'onmouseenter="this.dataset.hovered=\'yes\'" '
@@ -114,6 +118,18 @@ class АгентскийБраузерTest(unittest.TestCase):
             )
             self.assertEqual(1, проверка_строки["совпадений"])
             self.assertEqual(1, проверка_строки["видимых"])
+            команда = next(
+                элемент
+                for элемент in снимок["элементы"]
+                if элемент["компонент"] == "button"
+                and элемент["метка"] == "Готово"
+            )
+            выбор_команды = браузер.подобрать_локатор(команда["ref"])
+            self.assertEqual(
+                {"вид": "команда", "значение": "Готово"},
+                выбор_команды["локатор"],
+            )
+            self.assertFalse(выбор_команды["долг"])
             self.assertEqual(
                 ["Клиенты", "Сделки"], [x["текст"] for x in навигация]
             )
@@ -212,11 +228,18 @@ class АгентскийБраузерTest(unittest.TestCase):
                 получить("клик")(
                     контекст, {"пункт_навигации": "Клиенты"}
                 )
+                получить("клик")(контекст, {"команда": "Готово"})
             self.assertEqual(
                 "yes",
                 браузер._страница.locator(
                     "[data-component='navigation-item']"
                 ).first.get_attribute("data-clicked"),
+            )
+            self.assertEqual(
+                "yes",
+                браузер._страница.get_by_test_id(
+                    "write-and-close-command"
+                ).get_attribute("data-clicked"),
             )
 
     @unittest.skipUnless(

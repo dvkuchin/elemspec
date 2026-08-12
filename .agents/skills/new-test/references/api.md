@@ -40,6 +40,7 @@ hostname подтверждает действие открытия и не яв
 {"browser_session":"<uuid>","operation":"key","value":"Enter"}
 {"browser_session":"<uuid>","operation":"locator-check","locator_kind":"элемент","value":"Результат"}
 {"browser_session":"<uuid>","operation":"locator-check","locator_kind":"поле","value":"login-edit"}
+{"browser_session":"<uuid>","operation":"locator-check","locator_kind":"команда","value":"Готово"}
 {"browser_session":"<uuid>","operation":"locator-check","locator_kind":"пункт навигации","value":"Sales"}
 ```
 
@@ -59,6 +60,10 @@ hostname подтверждает действие открытия и не яв
 `поле "..." имеет значение "..."` и `поле "..." пусто`. Чтение password-полей
 запрещено, чтобы секреты не попадали в evidence. Очистка исследуется операцией
 `fill` с пустым `value`.
+
+Для `data-component="button"` с уникальной точной вложенной
+`data-component="label"` `locator-pick` возвращает локатор `команда`. В feature
+использовать `Когда я нажимаю команду "Готово"`.
 
 `table-row-check` проверяет строки внутри именованного `data-testid` контейнера
 платформенной таблицы. Строки распознаются по `data-component="table-row"`, а
