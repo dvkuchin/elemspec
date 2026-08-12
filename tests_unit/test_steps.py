@@ -6,6 +6,18 @@ from elemspec.steps import контракт_языка, разобрать
 
 
 class ПлатформенныйЛокаторTest(unittest.TestCase):
+    def test_разбирает_ожидание_формы(self) -> None:
+        self.assertEqual(
+            ("проверить_заголовок_формы", {"заголовок_формы": "Clients"}),
+            разобрать('открылась форма "Clients"'),
+        )
+
+    def test_разбирает_ожидание_диалога(self) -> None:
+        self.assertEqual(
+            ("проверить_заголовок_диалога", {"заголовок_диалога": "Delete client"}),
+            разобрать('открылся диалог "Delete client"'),
+        )
+
     def test_разбирает_клик_по_пункту_навигации(self) -> None:
         self.assertEqual(
             ("клик", {"пункт_навигации": "Sales"}),

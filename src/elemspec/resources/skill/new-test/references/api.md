@@ -46,6 +46,8 @@ hostname подтверждает действие открытия и не яв
 {"browser_session":"<uuid>","operation":"locator-check","locator_kind":"команда","value":"Готово"}
 {"browser_session":"<uuid>","operation":"locator-check","locator_kind":"команда диалога","value":"Delete"}
 {"browser_session":"<uuid>","operation":"locator-check","locator_kind":"пункт навигации","value":"Sales"}
+{"browser_session":"<uuid>","operation":"locator-check","locator_kind":"заголовок формы","value":"Clients"}
+{"browser_session":"<uuid>","operation":"locator-check","locator_kind":"заголовок диалога","value":"Delete client"}
 ```
 
 `snapshot` возвращает отдельный `ref` для каждого видимого

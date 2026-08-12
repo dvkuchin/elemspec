@@ -101,6 +101,45 @@ class ЛогическиеВариантыTest(unittest.TestCase):
         self.assertEqual(строки, логические_варианты(_Варианты(*строки)))
 
 
+class ЗаголовокОкнаTest(unittest.TestCase):
+    def _контекст(self):
+        временный = tempfile.TemporaryDirectory()
+        self.addCleanup(временный.cleanup)
+        каталог = Path(временный.name)
+        return Контекст(MagicMock(), Настройки("test", каталог), каталог)
+
+    def test_ожидает_точную_форму(self) -> None:
+        локатор = MagicMock()
+        локатор.count.return_value = 1
+        with patch("elemspec.actions.заголовок_формы", return_value=локатор):
+            результат = получить("проверить_заголовок_формы")(
+                self._контекст(), {"заголовок_формы": "Clients"}
+            )
+        self.assertIn("Clients", результат)
+        локатор.first.wait_for.assert_called_once_with(state="visible")
+
+    def test_несовпадение_заголовка_является_провалом(self) -> None:
+        локатор = MagicMock()
+        локатор.first.wait_for.side_effect = RuntimeError("timeout")
+        with (
+            patch("elemspec.actions.заголовок_формы", return_value=локатор),
+            self.assertRaisesRegex(ОшибкаПроверки, "не открылась"),
+        ):
+            получить("проверить_заголовок_формы")(
+                self._контекст(), {"заголовок_формы": "Wrong"}
+            )
+
+    def test_не_выбирает_первый_из_двух_диалогов(self) -> None:
+        локатор = MagicMock()
+        локатор.count.return_value = 2
+        with (
+            patch("elemspec.actions.заголовок_диалога", return_value=локатор),
+            self.assertRaisesRegex(ОшибкаДействия, "заголовков — 2"),
+        ):
+            получить("проверить_заголовок_диалога")(
+                self._контекст(), {"заголовок_диалога": "Delete client"}
+            )
+
 class ЗначениеПоляTest(unittest.TestCase):
     def _контекст(self, редактор: _Редактор, количество: int = 1):
         временный = tempfile.TemporaryDirectory()

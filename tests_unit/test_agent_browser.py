@@ -92,7 +92,9 @@ class АгентскийБраузерTest(unittest.TestCase):
                 '<span data-component="label">Готово</span></div>'
                 '<div data-component="button">'
                 '<span data-component="label">Delete</span></div>'
+                '<h1 data-testid="desktop-header-title">Clients</h1>'
                 '<aside role="alertdialog">'
+                '<h2 data-testid="dialog-title">Delete client</h2>'
                 '<div data-component="button" '
                 'onclick="this.dataset.clicked=\'yes\'">'
                 '<span data-component="label">Delete</span></div></aside>'
@@ -131,6 +133,21 @@ class АгентскийБраузерTest(unittest.TestCase):
                 for элемент in снимок["элементы"]
                 if элемент["компонент"] == "table-row"
             ]
+            заголовок_формы = next(
+                x for x in снимок["элементы"]
+                if x["testid"] == "desktop-header-title"
+            )
+            self.assertEqual(
+                {"вид": "заголовок формы", "значение": "Clients"},
+                браузер.подобрать_локатор(заголовок_формы["ref"])["локатор"],
+            )
+            заголовок_диалога = next(
+                x for x in снимок["элементы"] if x["текст"] == "Delete client"
+            )
+            self.assertEqual(
+                {"вид": "заголовок диалога", "значение": "Delete client"},
+                браузер.подобрать_локатор(заголовок_диалога["ref"])["локатор"],
+            )
             self.assertEqual(1, len(строки))
             self.assertEqual("ОсновнаяТаблица", строки[0]["таблица"])
             проверка_строки = браузер.проверить_строки_таблицы(

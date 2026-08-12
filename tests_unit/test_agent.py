@@ -327,6 +327,35 @@ class АгентскийAPITest(unittest.TestCase):
         self.assertEqual("VERIFIED", evidence["состояние"])
         self.assertEqual(1, evidence["подтверждённые"][0]["фактически"])
 
+    def test_заголовок_формы_подтверждается_семантическим_evidence(self) -> None:
+        разведка = открыть_разведку(self.разведки)["разведка"]
+        записать_событие(
+            self.разведки,
+            разведка,
+            "locator-check",
+            {"вид": "заголовок формы", "значение": "Clients"},
+            {
+                "вид": "заголовок формы",
+                "значение": "Clients",
+                "совпадений": 1,
+                "видимых": 1,
+                "тексты": ["Clients"],
+            },
+        )
+        сессия = открыть_сессию(self.корень, self.сессии, "form-title")
+        результат = подготовить(
+            self.корень,
+            self.сессии,
+            сессия["сессия"],
+            "{}",
+            '# language: ru\nФункция: Навигация\n  Сценарий: Clients\n    Тогда открылась форма "Clients"\n',
+            None,
+            self.разведки,
+            разведка,
+        )
+        self.assertEqual("APPLIED", результат["состояние"])
+        self.assertEqual("VERIFIED", результат["browser_evidence"]["состояние"])
+
     def test_конечный_url_redirect_проверяется_отдельным_шагом(self) -> None:
         приложение = "https://app.example.test/applications/demo"
         авторизация = "https://auth.example.test/signin"

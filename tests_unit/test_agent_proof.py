@@ -114,6 +114,15 @@ class НегативнаяМутацияTest(unittest.TestCase):
         )
         self.assertIsNone(выбрать_мутацию(feature))
 
+    def test_портит_ожидаемый_заголовок_формы(self) -> None:
+        feature = (
+            '# language: ru\nФункция: Навигация\n  Сценарий: Clients\n'
+            '    Тогда открылась форма "Clients"\n'
+        )
+        мутация = выбрать_мутацию(feature)
+        self.assertEqual("проверить_заголовок_формы", мутация["действие"])
+        self.assertIn('"Clients__ELEMPWT_NEGATIVE_', мутация["feature"])
+
     def test_чужое_падение_не_подтверждает_заявленный_дефект(self) -> None:
         результат = {
             "тесты": [
