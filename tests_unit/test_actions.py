@@ -12,6 +12,7 @@ from elemspec.actions import (
     получить,
 )
 from elemspec.model import Настройки
+from elemspec.element_ui import логические_варианты
 
 
 class _Редактор:
@@ -63,6 +64,41 @@ class _Страница:
 
     def wait_for_timeout(self, _timeout: int) -> None:
         pass
+
+
+class _Строка:
+    def __init__(self, индекс: str | None) -> None:
+        self.индекс = индекс
+
+    def get_attribute(self, имя: str):
+        return self.индекс if имя == "data-row-index" else None
+
+
+class _Варианты:
+    def __init__(self, *строки: _Строка) -> None:
+        self.строки = строки
+
+    def count(self) -> int:
+        return len(self.строки)
+
+    def nth(self, индекс: int) -> _Строка:
+        return self.строки[индекс]
+
+
+class ЛогическиеВариантыTest(unittest.TestCase):
+    def test_схлопывает_копии_с_одинаковым_row_index(self) -> None:
+        первая = _Строка("7")
+        self.assertEqual(
+            [первая], логические_варианты(_Варианты(первая, _Строка("7")))
+        )
+
+    def test_не_схлопывает_разные_row_index(self) -> None:
+        строки = [_Строка("7"), _Строка("8")]
+        self.assertEqual(строки, логические_варианты(_Варианты(*строки)))
+
+    def test_не_схлопывает_строки_без_row_index(self) -> None:
+        строки = [_Строка(None), _Строка(None)]
+        self.assertEqual(строки, логические_варианты(_Варианты(*строки)))
 
 
 class ЗначениеПоляTest(unittest.TestCase):
@@ -125,6 +161,7 @@ class ЗначениеПоляTest(unittest.TestCase):
                 "elemspec.actions.варианты_выпадающего_списка",
                 return_value=варианты,
             ),
+            patch("elemspec.actions.логические_варианты", return_value=[вариант]),
         ):
             результат = получить("выбрать_значение_поля")(
                 self._контекст(редактор),
@@ -147,6 +184,7 @@ class ЗначениеПоляTest(unittest.TestCase):
                 "elemspec.actions.варианты_выпадающего_списка",
                 return_value=варианты,
             ),
+            patch("elemspec.actions.логические_варианты", return_value=[]),
             self.assertRaisesRegex(ОшибкаДействия, "нет значения 'Москва'"),
         ):
             получить("выбрать_значение_поля")(
@@ -167,6 +205,10 @@ class ЗначениеПоляTest(unittest.TestCase):
             patch(
                 "elemspec.actions.варианты_выпадающего_списка",
                 return_value=варианты,
+            ),
+            patch(
+                "elemspec.actions.логические_варианты",
+                return_value=[MagicMock(), MagicMock()],
             ),
             self.assertRaisesRegex(ОшибкаДействия, "выбор неоднозначен"),
         ):

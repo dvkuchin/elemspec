@@ -391,6 +391,7 @@ class АгентскийБраузерTest(unittest.TestCase):
                 '<div data-testid="edit-dropdown-table" style="display:none">'
                 '<div data-component="table">'
                 '<div data-component="table-row" '
+                'data-row-index="0" '
                 'onclick="document.querySelector(\'[data-testid=БизнесРегион] input\')'
                 '.value=\'Москва\';this.closest(\'[data-testid=edit-dropdown-table]\')'
                 '.style.display=\'none\'">'
@@ -408,6 +409,37 @@ class АгентскийБраузерTest(unittest.TestCase):
             результат = браузер.выбрать_значение(поле["ref"], "Москва")
             self.assertEqual("Москва", результат["фактическое_значение"])
             self.assertEqual(1, результат["совпадений"])
+
+    @unittest.skipUnless(
+        os.environ.get("ELEMPWT_BROWSER_TESTS") == "1",
+        "запуск Chromium требует отдельного разрешения среды",
+    )
+    def test_выбор_схлопывает_dom_копии_одной_логической_строки(self) -> None:
+        политика = ПолитикаХостов(frozenset({"example.test"}))
+        with АгентскийБраузер(политика) as браузер:
+            браузер._страница.set_content(
+                '<div data-testid="БизнесРегион"><input '
+                'onclick="document.querySelector(\'[data-testid=edit-dropdown-table]\')'
+                '.style.display=\'block\'"></div>'
+                '<div data-testid="edit-dropdown-table" style="display:none">'
+                '<div data-component="table">'
+                '<div data-component="table-row" data-row-index="7" '
+                'onclick="document.querySelector(\'[data-testid=БизнесРегион] input\')'
+                '.value=\'Москва\'"><div data-component="table-cell">Москва</div></div>'
+                '<div data-component="table-row" data-row-index="7" '
+                'onclick="document.querySelector(\'[data-testid=БизнесРегион] input\')'
+                '.value=\'Москва\'"><div data-component="table-cell">Москва</div></div>'
+                '</div></div>'
+            )
+            снимок = браузер.снимок()
+            поле = next(
+                x for x in снимок["элементы"]
+                if x["компонент_поля"] == "БизнесРегион"
+            )
+            браузер.подобрать_локатор(поле["ref"])
+            результат = браузер.выбрать_значение(поле["ref"], "Москва")
+            self.assertEqual(1, результат["совпадений"])
+            self.assertEqual(2, результат["dom_совпадений"])
 
     def test_верхнеуровневый_переход_на_чужой_хост_блокируется(self) -> None:
         ограничитель = ОграничительНавигации(
