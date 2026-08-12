@@ -30,3 +30,13 @@ def пункт_навигации(страница, метка: str):
 def поле_компонента(страница, имя: str):
     """Найти текстовое поле внутри именованного компонента."""
     return страница.get_by_test_id(имя).locator(СЕЛЕКТОР_РЕДАКТИРУЕМОГО)
+
+
+def значение_редактора(элемент) -> str:
+    """Прочитать пользовательское значение input/textarea/contenteditable."""
+    тег = элемент.evaluate("(node) => node.tagName.toLowerCase()")
+    if тег in {"input", "textarea", "select"}:
+        return str(элемент.input_value())
+    if элемент.get_attribute("contenteditable") == "true":
+        return str(элемент.inner_text())
+    raise ValueError("элемент не является поддерживаемым редактором значения")

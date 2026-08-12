@@ -357,6 +357,7 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
             "click",
             "hover",
             "fill",
+            "read-value",
             "key",
         ],
         ref: str | None = None,
@@ -372,7 +373,8 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
                 "locator-check требует locator_kind и value"
             )
         if (
-            operation in {"locator-pick", "click", "hover", "fill"}
+            operation
+            in {"locator-pick", "click", "hover", "fill", "read-value"}
             and ref is None
         ):
             raise ОшибкаMCPАдаптера(
@@ -387,7 +389,7 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
             запрос["лимит"] = limit
         elif operation == "locator-check":
             запрос.update({"вид": locator_kind, "значение": value})
-        elif operation in {"locator-pick", "click", "hover"}:
+        elif operation in {"locator-pick", "click", "hover", "read-value"}:
             запрос["ref"] = ref
         elif operation == "fill":
             запрос.update({"ref": ref, "значение": value})

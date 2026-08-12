@@ -4,6 +4,9 @@
 [docs/architecture.md](docs/architecture.md). Здесь перечислены публичные
 направления развития проекта.
 
+Детальный исполняемый план платформенной библиотеки находится в
+[docs/element-step-library-plan.md](docs/element-step-library-plan.md).
+
 ## В работе
 
 - Разделить runtime и authoring-зависимости пакета без ухудшения установки через `pipx`.

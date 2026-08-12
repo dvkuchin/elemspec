@@ -206,6 +206,8 @@ def _цикл_браузера(
                         запрос.get("ref"),
                         запрос.get("значение"),
                     )
+                elif операция == "read-value":
+                    результат = браузер.прочитать_значение(запрос.get("ref"))
                 elif операция == "key":
                     результат = браузер.нажать_клавишу(
                         запрос.get("клавиша")
@@ -224,7 +226,8 @@ def _цикл_браузера(
                 else:
                     raise ОшибкаАгентскогоAPI(
                         "операция browser должна быть: start, snapshot, "
-                        "locator-check, locator-pick, click, hover, fill, key или close"
+                        "locator-check, locator-pick, click, hover, fill, "
+                        "read-value, key или close"
                     )
                 записать_событие(
                     каталог_разведок,
