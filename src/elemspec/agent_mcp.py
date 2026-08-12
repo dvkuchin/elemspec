@@ -36,7 +36,7 @@ from .agent_sessions import применить, подготовить, откр
 from .project import ПолитикаХостов, Проект
 
 
-ВЕРСИЯ_MCP_API = "0.3.0-dev.0"
+ВЕРСИЯ_MCP_API = "0.4.0-dev.0"
 
 
 def корень_mcp(явный: Path | None = None) -> Path:
@@ -358,6 +358,7 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
             "click",
             "hover",
             "fill",
+            "select-value",
             "read-value",
             "key",
         ],
@@ -383,13 +384,16 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
             )
         if (
             operation
-            in {"locator-pick", "click", "hover", "fill", "read-value"}
+            in {
+                "locator-pick", "click", "hover", "fill", "select-value",
+                "read-value",
+            }
             and ref is None
         ):
             raise ОшибкаMCPАдаптера(
                 f"{operation} требует ref из browser snapshot"
             )
-        if operation in {"fill", "key"} and value is None:
+        if operation in {"fill", "select-value", "key"} and value is None:
             raise ОшибкаMCPАдаптера(f"{operation} требует value")
         if not 1 <= limit <= 2000:
             raise ОшибкаMCPАдаптера("limit должен быть от 1 до 2000")
@@ -404,7 +408,7 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
             )
         elif operation in {"locator-pick", "click", "hover", "read-value"}:
             запрос["ref"] = ref
-        elif operation == "fill":
+        elif operation in {"fill", "select-value"}:
             запрос.update({"ref": ref, "значение": value})
         else:
             запрос["клавиша"] = value

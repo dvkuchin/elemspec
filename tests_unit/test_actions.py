@@ -3,7 +3,7 @@ from __future__ import annotations
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from elemspec.actions import (
     Контекст,
@@ -32,6 +32,9 @@ class _Редактор:
 
     def fill(self, значение: str) -> None:
         self.значение = значение
+
+    def click(self) -> None:
+        pass
 
 
 class _Локатор:
@@ -103,6 +106,74 @@ class ЗначениеПоляTest(unittest.TestCase):
         )
         self.assertEqual("", редактор.значение)
         self.assertEqual("поле очищено", результат)
+
+    def test_выбирает_точное_значение_из_выпадающего_списка(self) -> None:
+        редактор = _Редактор()
+        списки = MagicMock()
+        списки.count.return_value = 1
+        вариант = MagicMock()
+        вариант.click.side_effect = lambda: setattr(редактор, "значение", "Москва")
+        варианты = MagicMock()
+        варианты.count.return_value = 1
+        варианты.first = вариант
+        with (
+            patch(
+                "elemspec.actions.видимые_выпадающие_списки",
+                return_value=списки,
+            ),
+            patch(
+                "elemspec.actions.варианты_выпадающего_списка",
+                return_value=варианты,
+            ),
+        ):
+            результат = получить("выбрать_значение_поля")(
+                self._контекст(редактор),
+                {"поле_компонента": "БизнесРегион", "значение": "Москва"},
+            )
+        self.assertEqual("Москва", редактор.значение)
+        self.assertEqual("выбрано значение: 'Москва'", результат)
+
+    def test_сообщает_об_отсутствующем_значении_списка(self) -> None:
+        списки = MagicMock()
+        списки.count.return_value = 1
+        варианты = MagicMock()
+        варианты.count.return_value = 0
+        with (
+            patch(
+                "elemspec.actions.видимые_выпадающие_списки",
+                return_value=списки,
+            ),
+            patch(
+                "elemspec.actions.варианты_выпадающего_списка",
+                return_value=варианты,
+            ),
+            self.assertRaisesRegex(ОшибкаДействия, "нет значения 'Москва'"),
+        ):
+            получить("выбрать_значение_поля")(
+                self._контекст(_Редактор()),
+                {"поле_компонента": "БизнесРегион", "значение": "Москва"},
+            )
+
+    def test_не_выбирает_неоднозначное_значение_списка(self) -> None:
+        списки = MagicMock()
+        списки.count.return_value = 1
+        варианты = MagicMock()
+        варианты.count.return_value = 2
+        with (
+            patch(
+                "elemspec.actions.видимые_выпадающие_списки",
+                return_value=списки,
+            ),
+            patch(
+                "elemspec.actions.варианты_выпадающего_списка",
+                return_value=варианты,
+            ),
+            self.assertRaisesRegex(ОшибкаДействия, "выбор неоднозначен"),
+        ):
+            получить("выбрать_значение_поля")(
+                self._контекст(_Редактор()),
+                {"поле_компонента": "БизнесРегион", "значение": "Москва"},
+            )
 
 
 class СтрокиТаблицыTest(unittest.TestCase):

@@ -326,6 +326,39 @@ class АгентскийБраузерTest(unittest.TestCase):
                         {"поле_компонента": "period-edit", "значение": "x"},
                     )
 
+    @unittest.skipUnless(
+        os.environ.get("ELEMPWT_BROWSER_TESTS") == "1",
+        "запуск Chromium требует отдельного разрешения среды",
+    )
+    def test_выбирает_значение_из_платформенного_списка(self) -> None:
+        политика = ПолитикаХостов(frozenset({"example.test"}))
+        with АгентскийБраузер(политика) as браузер:
+            браузер._страница.set_content(
+                '<div data-testid="БизнесРегион">'
+                '<input data-testid="base-edit-input" '
+                'onclick="document.querySelector(\'[data-testid=edit-dropdown-table]\')'
+                '.style.display=\'block\'"></div>'
+                '<div data-testid="edit-dropdown-table" style="display:none">'
+                '<div data-component="table">'
+                '<div data-component="table-row" '
+                'onclick="document.querySelector(\'[data-testid=БизнесРегион] input\')'
+                '.value=\'Москва\';this.closest(\'[data-testid=edit-dropdown-table]\')'
+                '.style.display=\'none\'">'
+                '<div data-component="table-cell">Москва</div>'
+                '</div></div></div>'
+            )
+            снимок = браузер.снимок()
+            поле = next(
+                элемент
+                for элемент in снимок["элементы"]
+                if элемент["компонент_поля"] == "БизнесРегион"
+            )
+            выбор_локатора = браузер.подобрать_локатор(поле["ref"])
+            self.assertFalse(выбор_локатора["долг"])
+            результат = браузер.выбрать_значение(поле["ref"], "Москва")
+            self.assertEqual("Москва", результат["фактическое_значение"])
+            self.assertEqual(1, результат["совпадений"])
+
     def test_верхнеуровневый_переход_на_чужой_хост_блокируется(self) -> None:
         ограничитель = ОграничительНавигации(
             ПолитикаХостов(frozenset({"example.test"}))

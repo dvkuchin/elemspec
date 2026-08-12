@@ -35,6 +35,7 @@ hostname подтверждает действие открытия и не яв
 {"browser_session":"<uuid>","operation":"click","ref":"e4"}
 {"browser_session":"<uuid>","operation":"hover","ref":"e4"}
 {"browser_session":"<uuid>","operation":"fill","ref":"e7","value":"Иван"}
+{"browser_session":"<uuid>","operation":"select-value","ref":"e7","value":"Москва"}
 {"browser_session":"<uuid>","operation":"read-value","ref":"e7"}
 {"browser_session":"<uuid>","operation":"table-row-check","table":"ОсновнаяТаблица","column":"Наименование","value":"Иван"}
 {"browser_session":"<uuid>","operation":"key","value":"Enter"}
@@ -60,6 +61,10 @@ hostname подтверждает действие открытия и не яв
 `поле "..." имеет значение "..."` и `поле "..." пусто`. Чтение password-полей
 запрещено, чтобы секреты не попадали в evidence. Очистка исследуется операцией
 `fill` с пустым `value`.
+`select-value` кликает по именованному полю, требует ровно один видимый
+`data-testid="edit-dropdown-table"`, выбирает единственную платформенную строку
+с точным `value` и возвращает фактическое значение редактора. В feature это
+`Когда я выбираю "Москва" в поле "БизнесРегион"`.
 
 Для `data-component="button"` с уникальной точной вложенной
 `data-component="label"` `locator-pick` возвращает локатор `команда`. В feature
