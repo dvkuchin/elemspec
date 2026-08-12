@@ -18,9 +18,22 @@ class ПлатформенныйЛокаторTest(unittest.TestCase):
             разобрать('я навожу указатель на пункт навигации "Sales"'),
         )
 
+    def test_разбирает_ввод_в_поле_именованного_компонента(self) -> None:
+        self.assertEqual(
+            (
+                "ввести",
+                {
+                    "значение": "TestUser",
+                    "поле_компонента": "login-edit",
+                },
+            ),
+            разобрать('я ввожу "TestUser" в поле "login-edit"'),
+        )
+
     def test_публикует_локатор_в_контракте_dsl(self) -> None:
         фразы = [запись["фраза"] for запись in контракт_языка()]
         self.assertTrue(any("пункт навигации" in фраза for фраза in фразы))
+        self.assertTrue(any("поле" in фраза for фраза in фразы))
 
 
 if __name__ == "__main__":

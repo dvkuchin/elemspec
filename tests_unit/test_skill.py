@@ -29,6 +29,7 @@ class КонтрактНавыка(unittest.TestCase):
             "browser_start",
             "browser_action",
             "пункт навигации",
+            "поле",
             "validate_draft",
             "start_session",
             "register_engine_gap",

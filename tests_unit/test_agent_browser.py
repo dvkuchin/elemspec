@@ -60,6 +60,10 @@ class АгентскийБраузерTest(unittest.TestCase):
                 '<!doctype html><title>Тестовый стенд</title>'
                 '<button data-testid="КнопкаВойти">Войти</button>'
                 '<input aria-label="Имя">'
+                '<div data-testid="login-edit">Login'
+                '<input data-testid="base-edit-input" type="text"></div>'
+                '<div data-testid="password-edit">Password'
+                '<input data-testid="base-edit-input" type="password"></div>'
                 '<a href="/next">Продолжить</a>'
                 '<div data-component="navigation-item" '
                 'onmouseenter="this.dataset.hovered=\'yes\'" '
@@ -78,6 +82,12 @@ class АгентскийБраузерTest(unittest.TestCase):
                 элемент
                 for элемент in снимок["элементы"]
                 if элемент["имя"] == "Имя"
+            )
+            поле_логина = next(
+                элемент
+                for элемент in снимок["элементы"]
+                if элемент["тип"] == "text"
+                and элемент["testid"] == "base-edit-input"
             )
             навигация = [
                 элемент
@@ -111,11 +121,29 @@ class АгентскийБраузерTest(unittest.TestCase):
                 выбор["локатор"],
             )
             self.assertFalse(выбор["долг"])
+            self.assertEqual(
+                "login-edit", поле_логина["компонент_поля"]
+            )
+            проверка_поля = браузер.проверить_локатор("поле", "login-edit")
+            self.assertEqual(1, проверка_поля["совпадений"])
+            выбор_поля = браузер.подобрать_локатор(поле_логина["ref"])
+            self.assertEqual(
+                {"вид": "поле", "значение": "login-edit"},
+                выбор_поля["локатор"],
+            )
+            self.assertFalse(выбор_поля["долг"])
+            браузер.ввести(поле_логина["ref"], "TestUser")
+            self.assertEqual(
+                "TestUser",
+                браузер._страница.locator(
+                    '[data-testid="login-edit"] input'
+                ).input_value(),
+            )
             браузер.подобрать_локатор(поле["ref"])
             браузер.ввести(поле["ref"], "Иван")
             self.assertEqual(
                 "Иван",
-                браузер._страница.locator("input").input_value(),
+                браузер._страница.get_by_label("Имя").input_value(),
             )
             браузер.навести(навигация[0]["ref"])
             self.assertEqual(
@@ -133,6 +161,13 @@ class АгентскийБраузерTest(unittest.TestCase):
                 )
                 получить("навести_указатель")(
                     контекст, {"пункт_навигации": "Клиенты"}
+                )
+                получить("ввести")(
+                    контекст,
+                    {
+                        "поле_компонента": "password-edit",
+                        "значение": "secret",
+                    },
                 )
                 получить("клик")(
                     контекст, {"пункт_навигации": "Клиенты"}
@@ -189,6 +224,43 @@ class АгентскийБраузерTest(unittest.TestCase):
                 ):
                     получить("клик")(
                         контекст, {"пункт_навигации": "Sales"}
+                    )
+
+    @unittest.skipUnless(
+        os.environ.get("ELEMPWT_BROWSER_TESTS") == "1",
+        "запуск Chromium требует отдельного разрешения среды",
+    )
+    def test_компонент_с_двумя_полями_не_выбирает_первое(self) -> None:
+        политика = ПолитикаХостов(frozenset({"example.test"}))
+        with АгентскийБраузер(политика) as браузер:
+            браузер._страница.set_content(
+                '<div data-testid="period-edit">'
+                '<input data-testid="base-edit-input">'
+                '<input data-testid="base-edit-input">'
+                '</div>'
+            )
+            снимок = браузер.снимок()
+            первое = next(
+                элемент
+                for элемент in снимок["элементы"]
+                if элемент["тег"] == "input"
+            )
+            выбор = браузер.подобрать_локатор(первое["ref"])
+            self.assertTrue(выбор["долг"])
+            self.assertEqual("селектор", выбор["локатор"]["вид"])
+            with tempfile.TemporaryDirectory() as временный:
+                каталог = Path(временный)
+                контекст = Контекст(
+                    браузер._страница,
+                    Настройки("test", каталог),
+                    каталог,
+                )
+                with self.assertRaisesRegex(
+                    ОшибкаДействия, "найдено элементов - 2"
+                ):
+                    получить("ввести")(
+                        контекст,
+                        {"поле_компонента": "period-edit", "значение": "x"},
                     )
 
     def test_верхнеуровневый_переход_на_чужой_хост_блокируется(self) -> None:

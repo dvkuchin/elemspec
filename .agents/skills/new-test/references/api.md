@@ -37,6 +37,7 @@ hostname подтверждает действие открытия и не яв
 {"browser_session":"<uuid>","operation":"fill","ref":"e7","value":"Иван"}
 {"browser_session":"<uuid>","operation":"key","value":"Enter"}
 {"browser_session":"<uuid>","operation":"locator-check","locator_kind":"элемент","value":"Результат"}
+{"browser_session":"<uuid>","operation":"locator-check","locator_kind":"поле","value":"login-edit"}
 {"browser_session":"<uuid>","operation":"locator-check","locator_kind":"пункт навигации","value":"Sales"}
 ```
 
@@ -47,6 +48,11 @@ hostname подтверждает действие открытия и не яв
 долга, если точная метка уникальна. В feature использовать, например,
 `Когда я нажимаю пункт навигации "Sales"`. После `hover`, клика или другого
 изменения DOM запросить новый `snapshot`.
+
+Для редактируемого элемента внутри именованного `data-testid` компонента
+`snapshot` возвращает `компонент_поля`, а `locator-pick` -
+`{"вид":"поле","значение":"login-edit"}` без технического долга.
+В feature использовать `Когда я ввожу "..." в поле "login-edit"`.
 
 После изменения DOM запрашивать новый snapshot; старые `ref` не считать
 актуальным доказательством.

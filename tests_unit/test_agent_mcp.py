@@ -62,6 +62,7 @@ class MCPСерверTest(unittest.IsolatedAsyncioTestCase):
             "anyOf"
         ][0]["enum"]
         self.assertIn("пункт навигации", варианты)
+        self.assertIn("поле", варианты)
 
     async def test_публикует_канонический_prompt_нового_теста(self) -> None:
         async with Client(self.сервер, raise_exceptions=True) as клиент:

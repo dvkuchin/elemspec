@@ -11,6 +11,11 @@ import re
     f'[data-component="{КОМПОНЕНТ_ПУНКТА_НАВИГАЦИИ}"]'
 )
 СЕЛЕКТОР_МЕТКИ = f'[data-component="{КОМПОНЕНТ_МЕТКИ}"]'
+СЕЛЕКТОР_РЕДАКТИРУЕМОГО = (
+    "input:not([type='hidden']):not([type='checkbox']):not([type='radio'])"
+    ":not([type='button']):not([type='submit']):not([type='reset'])"
+    ":not([type='file']):not([type='image']), textarea, [contenteditable='true']"
+)
 
 
 def пункт_навигации(страница, метка: str):
@@ -20,3 +25,8 @@ def пункт_навигации(страница, метка: str):
     return метки.locator(
         f'xpath=ancestor::*[@data-component="{КОМПОНЕНТ_ПУНКТА_НАВИГАЦИИ}"][1]'
     )
+
+
+def поле_компонента(страница, имя: str):
+    """Найти текстовое поле внутри именованного компонента."""
+    return страница.get_by_test_id(имя).locator(СЕЛЕКТОР_РЕДАКТИРУЕМОГО)
