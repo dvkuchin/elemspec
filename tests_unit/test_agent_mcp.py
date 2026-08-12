@@ -131,6 +131,19 @@ class MCPСерверTest(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(ответ.is_error)
         self.assertIn("read-value требует ref", ответ.content[0].text)
 
+    async def test_table_row_check_требует_составной_локатор(self) -> None:
+        async with Client(self.сервер, raise_exceptions=True) as клиент:
+            ответ = await клиент.call_tool(
+                "browser_action",
+                {
+                    "browser_session": "missing",
+                    "operation": "table-row-check",
+                    "table": "ОсновнаяТаблица",
+                },
+            )
+        self.assertTrue(ответ.is_error)
+        self.assertIn("table, column и value", ответ.content[0].text)
+
 
 class ГлобальныйMCPСерверTest(unittest.IsolatedAsyncioTestCase):
     async def test_стартует_вне_проекта_и_возвращает_tool_error(self) -> None:

@@ -64,6 +64,14 @@ class АгентскийБраузерTest(unittest.TestCase):
                 '<input data-testid="base-edit-input" type="text"></div>'
                 '<div data-testid="password-edit">Password'
                 '<input data-testid="base-edit-input" type="password"></div>'
+                '<div data-testid="ОсновнаяТаблица">'
+                '<div data-component="table">'
+                '<div data-component="table-row">'
+                '<div data-component="table-cell">'
+                '<div data-testid="Наименование">Иван</div></div>'
+                '<div data-component="table-cell">'
+                '<div data-testid="Регион">Москва</div></div>'
+                '</div></div></div>'
                 '<a href="/next">Продолжить</a>'
                 '<div data-component="navigation-item" '
                 'onmouseenter="this.dataset.hovered=\'yes\'" '
@@ -94,6 +102,18 @@ class АгентскийБраузерTest(unittest.TestCase):
                 for элемент in снимок["элементы"]
                 if элемент["компонент"] == "navigation-item"
             ]
+            строки = [
+                элемент
+                for элемент in снимок["элементы"]
+                if элемент["компонент"] == "table-row"
+            ]
+            self.assertEqual(1, len(строки))
+            self.assertEqual("ОсновнаяТаблица", строки[0]["таблица"])
+            проверка_строки = браузер.проверить_строки_таблицы(
+                "ОсновнаяТаблица", "Наименование", "Иван"
+            )
+            self.assertEqual(1, проверка_строки["совпадений"])
+            self.assertEqual(1, проверка_строки["видимых"])
             self.assertEqual(
                 ["Клиенты", "Сделки"], [x["текст"] for x in навигация]
             )

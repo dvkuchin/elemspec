@@ -94,6 +94,7 @@ def контракт(
                     "snapshot",
                     "locator-check",
                     "locator-pick",
+                    "table-row-check",
                     "click",
                     "hover",
                     "fill",

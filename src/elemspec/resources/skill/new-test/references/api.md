@@ -36,6 +36,7 @@ hostname подтверждает действие открытия и не яв
 {"browser_session":"<uuid>","operation":"hover","ref":"e4"}
 {"browser_session":"<uuid>","operation":"fill","ref":"e7","value":"Иван"}
 {"browser_session":"<uuid>","operation":"read-value","ref":"e7"}
+{"browser_session":"<uuid>","operation":"table-row-check","table":"ОсновнаяТаблица","column":"Наименование","value":"Иван"}
 {"browser_session":"<uuid>","operation":"key","value":"Enter"}
 {"browser_session":"<uuid>","operation":"locator-check","locator_kind":"элемент","value":"Результат"}
 {"browser_session":"<uuid>","operation":"locator-check","locator_kind":"поле","value":"login-edit"}
@@ -58,6 +59,11 @@ hostname подтверждает действие открытия и не яв
 `поле "..." имеет значение "..."` и `поле "..." пусто`. Чтение password-полей
 запрещено, чтобы секреты не попадали в evidence. Очистка исследуется операцией
 `fill` с пустым `value`.
+
+`table-row-check` проверяет строки внутри именованного `data-testid` контейнера
+платформенной таблицы. Строки распознаются по `data-component="table-row"`, а
+точное значение — в именованной колонке. Результат содержит число совпадений,
+видимых строк и их тексты для evidence.
 
 После изменения DOM запрашивать новый snapshot; старые `ref` не считать
 актуальным доказательством.

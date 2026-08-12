@@ -3,6 +3,7 @@ from __future__ import annotations
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import MagicMock
 
 from elemspec.actions import (
     Контекст,
@@ -102,6 +103,58 @@ class ЗначениеПоляTest(unittest.TestCase):
         )
         self.assertEqual("", редактор.значение)
         self.assertEqual("поле очищено", результат)
+
+
+class СтрокиТаблицыTest(unittest.TestCase):
+    def _контекст(self, количество: int) -> Контекст:
+        временный = tempfile.TemporaryDirectory()
+        self.addCleanup(временный.cleanup)
+        каталог = Path(временный.name)
+        страница = MagicMock()
+        контейнер = страница.get_by_test_id.return_value
+        таблица = контейнер.locator.return_value
+        строки = таблица.locator.return_value
+        ячейки = таблица.get_by_test_id.return_value
+        ячейки.filter.return_value = ячейки
+        найденные = строки.filter.return_value
+        найденные.count.return_value = количество
+        найденные.first.wait_for.return_value = None
+        настройки = Настройки("test", каталог, таймаут_мс=0)
+        return Контекст(страница, настройки, каталог)
+
+    def test_находит_строку_по_значению_колонки(self) -> None:
+        результат = получить("проверить_строки_таблицы")(
+            self._контекст(1),
+            {
+                "таблица": "ОсновнаяТаблица",
+                "колонка": "Наименование",
+                "значение_ячейки": "Иван",
+            },
+        )
+        self.assertIn("— 1", результат)
+
+    def test_отсутствующая_ожидаемая_строка_проваливает_проверку(self) -> None:
+        with self.assertRaisesRegex(ОшибкаПроверки, "не найдена строка"):
+            получить("проверить_строки_таблицы")(
+                self._контекст(0),
+                {
+                    "таблица": "ОсновнаяТаблица",
+                    "колонка": "Наименование",
+                    "значение_ячейки": "Иван",
+                },
+            )
+
+    def test_проверяет_отсутствие_строки(self) -> None:
+        результат = получить("проверить_строки_таблицы")(
+            self._контекст(0),
+            {
+                "таблица": "ОсновнаяТаблица",
+                "колонка": "Наименование",
+                "значение_ячейки": "Иван",
+                "количество": 0,
+            },
+        )
+        self.assertIn("— 0", результат)
 
 
 if __name__ == "__main__":

@@ -354,6 +354,7 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
             "snapshot",
             "locator-check",
             "locator-pick",
+            "table-row-check",
             "click",
             "hover",
             "fill",
@@ -365,12 +366,20 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
             "элемент", "поле", "пункт навигации", "текст", "селектор"
         ] | None = None,
         value: str | None = None,
+        table: str | None = None,
+        column: str | None = None,
         limit: int = 500,
     ) -> dict[str, Any]:
         """Run one constrained action in an existing discovery browser session."""
         if operation == "locator-check" and (locator_kind is None or value is None):
             raise ОшибкаMCPАдаптера(
                 "locator-check требует locator_kind и value"
+            )
+        if operation == "table-row-check" and (
+            table is None or column is None or value is None
+        ):
+            raise ОшибкаMCPАдаптера(
+                "table-row-check требует table, column и value"
             )
         if (
             operation
@@ -389,6 +398,10 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
             запрос["лимит"] = limit
         elif operation == "locator-check":
             запрос.update({"вид": locator_kind, "значение": value})
+        elif operation == "table-row-check":
+            запрос.update(
+                {"таблица": table, "колонка": column, "значение": value}
+            )
         elif operation in {"locator-pick", "click", "hover", "read-value"}:
             запрос["ref"] = ref
         elif operation == "fill":
