@@ -289,6 +289,44 @@ class АгентскийAPITest(unittest.TestCase):
             evidence["подтверждённые"][0]["фактически"]["конечный"],
         )
 
+    def test_ожидание_выбирает_успешную_проверку_после_промежуточной(self) -> None:
+        разведка = открыть_разведку(self.разведки)["разведка"]
+        for совпадений in (0, 1):
+            записать_событие(
+                self.разведки,
+                разведка,
+                "locator-check",
+                {},
+                {
+                    "локатор": {
+                        "вид": "элемент",
+                        "значение": "global-navigation",
+                    },
+                    "совпадений": совпадений,
+                    "видимых": совпадений,
+                },
+            )
+        сессия = открыть_сессию(
+            self.корень, self.сессии, "delayed-navigation"
+        )
+        результат = подготовить(
+            self.корень,
+            self.сессии,
+            сессия["сессия"],
+            "{}",
+            (
+                '# language: ru\nФункция: Загрузка\n  Сценарий: Навигация\n'
+                '    Тогда я жду элемент "global-navigation"\n'
+            ),
+            None,
+            self.разведки,
+            разведка,
+        )
+        self.assertEqual("APPLIED", результат["состояние"])
+        evidence = результат["browser_evidence"]
+        self.assertEqual("VERIFIED", evidence["состояние"])
+        self.assertEqual(1, evidence["подтверждённые"][0]["фактически"])
+
     def test_конечный_url_redirect_проверяется_отдельным_шагом(self) -> None:
         приложение = "https://app.example.test/applications/demo"
         авторизация = "https://auth.example.test/signin"
