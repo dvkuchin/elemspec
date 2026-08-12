@@ -441,6 +441,40 @@ class АгентскийБраузерTest(unittest.TestCase):
             self.assertEqual(1, результат["совпадений"])
             self.assertEqual(2, результат["dom_совпадений"])
 
+    @unittest.skipUnless(
+        os.environ.get("ELEMPWT_BROWSER_TESTS") == "1",
+        "запуск Chromium требует отдельного разрешения среды",
+    )
+    def test_явный_выбор_любого_при_разных_row_index(self) -> None:
+        политика = ПолитикаХостов(frozenset({"example.test"}))
+        with АгентскийБраузер(политика) as браузер:
+            браузер._страница.set_content(
+                '<div data-testid="БизнесРегион"><input '
+                'onclick="document.querySelector(\'[data-testid=edit-dropdown-table]\')'
+                '.style.display=\'block\'"></div>'
+                '<div data-testid="edit-dropdown-table" style="display:none">'
+                '<div data-component="table">'
+                '<div data-component="table-row" data-row-index="7" '
+                'onclick="document.querySelector(\'[data-testid=БизнесРегион] input\')'
+                '.value=\'Москва\'"><div data-component="table-cell">Москва</div></div>'
+                '<div data-component="table-row" data-row-index="8" '
+                'onclick="document.querySelector(\'[data-testid=БизнесРегион] input\')'
+                '.value=\'Москва\'"><div data-component="table-cell">Москва</div></div>'
+                '</div></div>'
+            )
+            снимок = браузер.снимок()
+            поле = next(
+                x for x in снимок["элементы"]
+                if x["компонент_поля"] == "БизнесРегион"
+            )
+            браузер.подобрать_локатор(поле["ref"])
+            результат = браузер.выбрать_любое_значение(
+                поле["ref"], "Москва"
+            )
+            self.assertEqual("любое", результат["режим"])
+            self.assertEqual(2, результат["совпадений"])
+            self.assertEqual("Москва", результат["фактическое_значение"])
+
     def test_верхнеуровневый_переход_на_чужой_хост_блокируется(self) -> None:
         ограничитель = ОграничительНавигации(
             ПолитикаХостов(frozenset({"example.test"}))

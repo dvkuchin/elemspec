@@ -217,6 +217,29 @@ class ЗначениеПоляTest(unittest.TestCase):
                 {"поле_компонента": "БизнесРегион", "значение": "Москва"},
             )
 
+    def test_явно_выбирает_любое_из_неоднозначных_значений(self) -> None:
+        редактор = _Редактор()
+        списки = MagicMock()
+        списки.count.return_value = 1
+        варианты = MagicMock()
+        варианты.count.return_value = 2
+        первый = MagicMock()
+        первый.click.side_effect = lambda: setattr(редактор, "значение", "Москва")
+        with (
+            patch("elemspec.actions.видимые_выпадающие_списки", return_value=списки),
+            patch("elemspec.actions.варианты_выпадающего_списка", return_value=варианты),
+            patch(
+                "elemspec.actions.логические_варианты",
+                return_value=[первый, MagicMock()],
+            ),
+        ):
+            результат = получить("выбрать_любое_значение_поля")(
+                self._контекст(редактор),
+                {"поле_компонента": "БизнесРегион", "значение": "Москва"},
+            )
+        первый.click.assert_called_once_with()
+        self.assertIn("любое из 2", результат)
+
 
 class СтрокиТаблицыTest(unittest.TestCase):
     def _контекст(self, количество: int) -> Контекст:

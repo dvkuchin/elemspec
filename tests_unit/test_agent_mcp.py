@@ -144,6 +144,18 @@ class MCPСерверTest(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(ответ.is_error)
         self.assertIn("select-value требует ref", ответ.content[0].text)
 
+    async def test_select_any_value_требует_ref_и_value(self) -> None:
+        async with Client(self.сервер, raise_exceptions=True) as клиент:
+            ответ = await клиент.call_tool(
+                "browser_action",
+                {
+                    "browser_session": "missing",
+                    "operation": "select-any-value",
+                },
+            )
+        self.assertTrue(ответ.is_error)
+        self.assertIn("select-any-value требует ref", ответ.content[0].text)
+
     async def test_table_row_check_требует_составной_локатор(self) -> None:
         async with Client(self.сервер, raise_exceptions=True) as клиент:
             ответ = await клиент.call_tool(

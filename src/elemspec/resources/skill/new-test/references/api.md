@@ -36,6 +36,7 @@ hostname подтверждает действие открытия и не яв
 {"browser_session":"<uuid>","operation":"hover","ref":"e4"}
 {"browser_session":"<uuid>","operation":"fill","ref":"e7","value":"Иван"}
 {"browser_session":"<uuid>","operation":"select-value","ref":"e7","value":"Москва"}
+{"browser_session":"<uuid>","operation":"select-any-value","ref":"e7","value":"Москва"}
 {"browser_session":"<uuid>","operation":"read-value","ref":"e7"}
 {"browser_session":"<uuid>","operation":"table-row-check","table":"ОсновнаяТаблица","column":"Наименование","value":"Иван"}
 {"browser_session":"<uuid>","operation":"table-row-open","table":"ОсновнаяТаблица","column":"Наименование","value":"Иван"}
@@ -70,6 +71,9 @@ hostname подтверждает действие открытия и не яв
 логические индексы остаются ошибкой неоднозначности. Результат содержит
 `dom_совпадений` и число логических `совпадений`. В feature это
 `Когда я выбираю "Москва" в поле "БизнесРегион"`.
+`select-any-value` отдельно доказывает фразу `Когда я выбираю любое значение
+"Москва" в поле "БизнесРегион"`: несколько логических совпадений разрешены
+явно, но отсутствие значения остаётся ошибкой.
 
 Для `data-component="button"` с уникальной точной вложенной
 `data-component="label"` `locator-pick` возвращает локатор `команда`. В feature
