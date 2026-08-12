@@ -35,7 +35,8 @@ class MCPСерверTest(unittest.IsolatedAsyncioTestCase):
 
     async def test_публикует_узкие_инструменты(self) -> None:
         async with Client(self.сервер, raise_exceptions=True) as клиент:
-            имена = {инструмент.name for инструмент in (await клиент.list_tools()).tools}
+            инструменты = (await клиент.list_tools()).tools
+            имена = {инструмент.name for инструмент in инструменты}
         self.assertEqual(
             {
                 "get_contract",
@@ -52,6 +53,15 @@ class MCPСерверTest(unittest.IsolatedAsyncioTestCase):
             },
             имена,
         )
+        browser_action = next(
+            инструмент
+            for инструмент in инструменты
+            if инструмент.name == "browser_action"
+        )
+        варианты = browser_action.input_schema["properties"]["locator_kind"][
+            "anyOf"
+        ][0]["enum"]
+        self.assertIn("пункт навигации", варианты)
 
     async def test_публикует_канонический_prompt_нового_теста(self) -> None:
         async with Client(self.сервер, raise_exceptions=True) as клиент:

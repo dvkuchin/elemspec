@@ -36,7 +36,7 @@ from .agent_sessions import применить, подготовить, откр
 from .project import ПолитикаХостов, Проект
 
 
-ВЕРСИЯ_MCP_API = "0.2.0-dev.0"
+ВЕРСИЯ_MCP_API = "0.3.0-dev.0"
 
 
 def корень_mcp(явный: Path | None = None) -> Path:
@@ -360,7 +360,9 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
             "key",
         ],
         ref: str | None = None,
-        locator_kind: Literal["элемент", "текст", "селектор"] | None = None,
+        locator_kind: Literal[
+            "элемент", "пункт навигации", "текст", "селектор"
+        ] | None = None,
         value: str | None = None,
         limit: int = 500,
     ) -> dict[str, Any]:

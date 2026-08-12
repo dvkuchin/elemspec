@@ -37,12 +37,16 @@ hostname подтверждает действие открытия и не яв
 {"browser_session":"<uuid>","operation":"fill","ref":"e7","value":"Иван"}
 {"browser_session":"<uuid>","operation":"key","value":"Enter"}
 {"browser_session":"<uuid>","operation":"locator-check","locator_kind":"элемент","value":"Результат"}
+{"browser_session":"<uuid>","operation":"locator-check","locator_kind":"пункт навигации","value":"Sales"}
 ```
 
 `snapshot` возвращает отдельный `ref` для каждого видимого
 `data-component="navigation-item"`. В полях `текст` и `метка` находится текст
-вложенного `data-component="label"`. После `hover`, клика или другого изменения
-DOM запросить новый `snapshot`.
+вложенного `data-component="label"`. `locator-pick` возвращает для такого
+элемента `{"вид":"пункт навигации","значение":"Sales"}` без технического
+долга, если точная метка уникальна. В feature использовать, например,
+`Когда я нажимаю пункт навигации "Sales"`. После `hover`, клика или другого
+изменения DOM запросить новый `snapshot`.
 
 После изменения DOM запрашивать новый snapshot; старые `ref` не считать
 актуальным доказательством.

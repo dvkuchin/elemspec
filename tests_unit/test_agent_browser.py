@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 import os
+import tempfile
 import unittest
+from pathlib import Path
 
+from elemspec.actions import Контекст, ОшибкаДействия, получить
 from elemspec.agent_browser import АгентскийБраузер, это_автоимя
+from elemspec.model import Настройки
 from elemspec.project import ОграничительНавигации, ПолитикаХостов
 
 
@@ -58,7 +62,8 @@ class АгентскийБраузерTest(unittest.TestCase):
                 '<input aria-label="Имя">'
                 '<a href="/next">Продолжить</a>'
                 '<div data-component="navigation-item" '
-                'onmouseenter="this.dataset.hovered=\'yes\'">'
+                'onmouseenter="this.dataset.hovered=\'yes\'" '
+                'onclick="this.dataset.clicked=\'yes\'">'
                 '<span data-component="label">Клиенты</span></div>'
                 '<div data-component="navigation-item">'
                 '<span data-component="label">Сделки</span></div>'
@@ -86,6 +91,16 @@ class АгентскийБраузерTest(unittest.TestCase):
                 ["Клиенты", "Сделки"], [x["метка"] for x in навигация]
             )
             self.assertEqual(2, len({x["ref"] for x in навигация}))
+            проверка_навигации = браузер.проверить_локатор(
+                "пункт навигации", "Клиенты"
+            )
+            self.assertEqual(1, проверка_навигации["совпадений"])
+            выбор_навигации = браузер.подобрать_локатор(навигация[0]["ref"])
+            self.assertEqual(
+                {"вид": "пункт навигации", "значение": "Клиенты"},
+                выбор_навигации["локатор"],
+            )
+            self.assertFalse(выбор_навигации["долг"])
             проверка = браузер.проверить_локатор("элемент", "КнопкаВойти")
             self.assertEqual(1, проверка["совпадений"])
             self.assertEqual(1, проверка["видимых"])
@@ -109,6 +124,72 @@ class АгентскийБраузерTest(unittest.TestCase):
                     "[data-component='navigation-item']"
                 ).first.get_attribute("data-hovered"),
             )
+            with tempfile.TemporaryDirectory() as временный:
+                каталог = Path(временный)
+                контекст = Контекст(
+                    браузер._страница,
+                    Настройки("test", каталог),
+                    каталог,
+                )
+                получить("навести_указатель")(
+                    контекст, {"пункт_навигации": "Клиенты"}
+                )
+                получить("клик")(
+                    контекст, {"пункт_навигации": "Клиенты"}
+                )
+            self.assertEqual(
+                "yes",
+                браузер._страница.locator(
+                    "[data-component='navigation-item']"
+                ).first.get_attribute("data-clicked"),
+            )
+
+    @unittest.skipUnless(
+        os.environ.get("ELEMPWT_BROWSER_TESTS") == "1",
+        "запуск Chromium требует отдельного разрешения среды",
+    )
+    def test_вложенная_метка_адресует_ближайший_пункт(self) -> None:
+        политика = ПолитикаХостов(frozenset({"example.test"}))
+        with АгентскийБраузер(политика) as браузер:
+            браузер._страница.set_content(
+                '<div data-component="navigation-item" data-level="root">'
+                '<span data-component="label">Sales</span>'
+                '<div data-component="navigation-item" data-level="child">'
+                '<span data-component="label">Clients</span>'
+                '</div></div>'
+            )
+            проверка = браузер.проверить_локатор(
+                "пункт навигации", "Clients"
+            )
+            self.assertEqual(1, проверка["совпадений"])
+            self.assertEqual(["Clients"], проверка["тексты"])
+
+    @unittest.skipUnless(
+        os.environ.get("ELEMPWT_BROWSER_TESTS") == "1",
+        "запуск Chromium требует отдельного разрешения среды",
+    )
+    def test_неоднозначная_метка_не_выбирает_первый_пункт(self) -> None:
+        политика = ПолитикаХостов(frozenset({"example.test"}))
+        with АгентскийБраузер(политика) as браузер:
+            браузер._страница.set_content(
+                '<div data-component="navigation-item">'
+                '<span data-component="label">Sales</span></div>'
+                '<div data-component="navigation-item">'
+                '<span data-component="label">Sales</span></div>'
+            )
+            with tempfile.TemporaryDirectory() as временный:
+                каталог = Path(временный)
+                контекст = Контекст(
+                    браузер._страница,
+                    Настройки("test", каталог),
+                    каталог,
+                )
+                with self.assertRaisesRegex(
+                    ОшибкаДействия, "найдено элементов - 2"
+                ):
+                    получить("клик")(
+                        контекст, {"пункт_навигации": "Sales"}
+                    )
 
     def test_верхнеуровневый_переход_на_чужой_хост_блокируется(self) -> None:
         ограничитель = ОграничительНавигации(
