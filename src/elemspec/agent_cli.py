@@ -203,6 +203,12 @@ def _цикл_браузера(
                         запрос.get("колонка"),
                         запрос.get("значение"),
                     )
+                elif операция == "table-row-open":
+                    результат = браузер.открыть_строку_таблицы(
+                        запрос.get("таблица"),
+                        запрос.get("колонка"),
+                        запрос.get("значение"),
+                    )
                 elif операция == "click":
                     результат = браузер.нажать(запрос.get("ref"))
                 elif операция == "hover":
@@ -237,7 +243,7 @@ def _цикл_браузера(
                 else:
                     raise ОшибкаАгентскогоAPI(
                         "операция browser должна быть: start, snapshot, "
-                        "locator-check, locator-pick, table-row-check, "
+                        "locator-check, locator-pick, table-row-check, table-row-open, "
                         "click, hover, fill, select-value, "
                         "read-value, key или close"
                     )

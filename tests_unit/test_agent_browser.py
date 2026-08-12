@@ -90,6 +90,12 @@ class АгентскийБраузерTest(unittest.TestCase):
                 'data-component="button" '
                 'onclick="this.dataset.clicked=\'yes\'">'
                 '<span data-component="label">Готово</span></div>'
+                '<div data-component="button">'
+                '<span data-component="label">Delete</span></div>'
+                '<aside role="alertdialog">'
+                '<div data-component="button" '
+                'onclick="this.dataset.clicked=\'yes\'">'
+                '<span data-component="label">Delete</span></div></aside>'
                 '<a href="/next">Продолжить</a>'
                 '<div data-component="navigation-item" '
                 'onmouseenter="this.dataset.hovered=\'yes\'" '
@@ -132,6 +138,13 @@ class АгентскийБраузерTest(unittest.TestCase):
             )
             self.assertEqual(1, проверка_строки["совпадений"])
             self.assertEqual(1, проверка_строки["видимых"])
+            открытие_строки = браузер.открыть_строку_таблицы(
+                "ОсновнаяТаблица", "Наименование", "Иван"
+            )
+            self.assertEqual(1, открытие_строки["совпадений"])
+            self.assertEqual(
+                "строка таблицы", открытие_строки["локатор"]["вид"]
+            )
             команда = next(
                 элемент
                 for элемент in снимок["элементы"]
@@ -144,6 +157,29 @@ class АгентскийБраузерTest(unittest.TestCase):
                 выбор_команды["локатор"],
             )
             self.assertFalse(выбор_команды["долг"])
+            команда_диалога = next(
+                элемент
+                for элемент in снимок["элементы"]
+                if элемент["компонент"] == "button"
+                and элемент["метка"] == "Delete"
+                and браузер._получить_ref(элемент["ref"]).locator(
+                    'xpath=ancestor::*[@role="alertdialog"][1]'
+                ).count() == 1
+            )
+            выбор_диалога = браузер.подобрать_локатор(
+                команда_диалога["ref"]
+            )
+            self.assertEqual(
+                {"вид": "команда диалога", "значение": "Delete"},
+                выбор_диалога["локатор"],
+            )
+            self.assertFalse(выбор_диалога["долг"])
+            self.assertEqual(
+                1,
+                браузер.проверить_локатор(
+                    "команда диалога", "Delete"
+                )["совпадений"],
+            )
             self.assertEqual(
                 ["Клиенты", "Сделки"], [x["текст"] for x in навигация]
             )

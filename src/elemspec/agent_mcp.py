@@ -36,7 +36,7 @@ from .agent_sessions import применить, подготовить, откр
 from .project import ПолитикаХостов, Проект
 
 
-ВЕРСИЯ_MCP_API = "0.4.0-dev.0"
+ВЕРСИЯ_MCP_API = "0.5.0-dev.0"
 
 
 def корень_mcp(явный: Path | None = None) -> Path:
@@ -355,6 +355,7 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
             "locator-check",
             "locator-pick",
             "table-row-check",
+            "table-row-open",
             "click",
             "hover",
             "fill",
@@ -364,7 +365,8 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
         ],
         ref: str | None = None,
         locator_kind: Literal[
-            "элемент", "поле", "команда", "пункт навигации", "текст", "селектор"
+            "элемент", "поле", "команда", "команда диалога", "пункт навигации",
+            "текст", "селектор"
         ] | None = None,
         value: str | None = None,
         table: str | None = None,
@@ -376,11 +378,11 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
             raise ОшибкаMCPАдаптера(
                 "locator-check требует locator_kind и value"
             )
-        if operation == "table-row-check" and (
+        if operation in {"table-row-check", "table-row-open"} and (
             table is None or column is None or value is None
         ):
             raise ОшибкаMCPАдаптера(
-                "table-row-check требует table, column и value"
+                f"{operation} требует table, column и value"
             )
         if (
             operation
@@ -402,7 +404,7 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
             запрос["лимит"] = limit
         elif operation == "locator-check":
             запрос.update({"вид": locator_kind, "значение": value})
-        elif operation == "table-row-check":
+        elif operation in {"table-row-check", "table-row-open"}:
             запрос.update(
                 {"таблица": table, "колонка": column, "значение": value}
             )

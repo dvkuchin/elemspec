@@ -227,6 +227,50 @@ class СтрокиТаблицыTest(unittest.TestCase):
         )
         self.assertIn("— 0", результат)
 
+    def test_открывает_единственную_найденную_строку(self) -> None:
+        контекст = self._контекст(1)
+        результат = получить("открыть_строку_таблицы")(
+            контекст,
+            {
+                "таблица": "ОсновнаяТаблица",
+                "колонка": "Наименование",
+                "значение_ячейки": "Иван",
+            },
+        )
+        self.assertIn("открыта строка", результат)
+
+    def test_не_открывает_неоднозначную_строку(self) -> None:
+        with self.assertRaisesRegex(ОшибкаДействия, "открытие неоднозначно"):
+            получить("открыть_строку_таблицы")(
+                self._контекст(2),
+                {
+                    "таблица": "ОсновнаяТаблица",
+                    "колонка": "Наименование",
+                    "значение_ячейки": "Иван",
+                },
+            )
+
+
+class КомандаДиалогаTest(unittest.TestCase):
+    def test_нажимает_единственную_команду_в_диалоге(self) -> None:
+        временный = tempfile.TemporaryDirectory()
+        self.addCleanup(временный.cleanup)
+        страница = MagicMock()
+        локатор = MagicMock()
+        локатор.count.return_value = 1
+        локатор.first.wait_for.return_value = None
+        with patch("elemspec.actions.команда_диалога", return_value=локатор):
+            результат = получить("клик")(
+                Контекст(
+                    страница,
+                    Настройки("test", Path(временный.name)),
+                    Path(временный.name),
+                ),
+                {"команда_диалога": "Delete"},
+            )
+        локатор.first.click.assert_called_once_with()
+        self.assertEqual("клик выполнен", результат)
+
 
 if __name__ == "__main__":
     unittest.main()

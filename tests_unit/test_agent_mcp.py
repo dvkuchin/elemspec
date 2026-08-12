@@ -63,6 +63,7 @@ class MCPСерверTest(unittest.IsolatedAsyncioTestCase):
         ][0]["enum"]
         self.assertIn("пункт навигации", варианты)
         self.assertIn("поле", варианты)
+        self.assertIn("команда диалога", варианты)
 
     async def test_публикует_канонический_prompt_нового_теста(self) -> None:
         async with Client(self.сервер, raise_exceptions=True) as клиент:
@@ -155,6 +156,19 @@ class MCPСерверTest(unittest.IsolatedAsyncioTestCase):
             )
         self.assertTrue(ответ.is_error)
         self.assertIn("table, column и value", ответ.content[0].text)
+
+    async def test_table_row_open_требует_составной_локатор(self) -> None:
+        async with Client(self.сервер, raise_exceptions=True) as клиент:
+            ответ = await клиент.call_tool(
+                "browser_action",
+                {
+                    "browser_session": "missing",
+                    "operation": "table-row-open",
+                    "table": "ОсновнаяТаблица",
+                },
+            )
+        self.assertTrue(ответ.is_error)
+        self.assertIn("table-row-open требует table, column и value", ответ.content[0].text)
 
 
 class ГлобальныйMCPСерверTest(unittest.IsolatedAsyncioTestCase):

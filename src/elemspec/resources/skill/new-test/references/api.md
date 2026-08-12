@@ -38,10 +38,12 @@ hostname подтверждает действие открытия и не яв
 {"browser_session":"<uuid>","operation":"select-value","ref":"e7","value":"Москва"}
 {"browser_session":"<uuid>","operation":"read-value","ref":"e7"}
 {"browser_session":"<uuid>","operation":"table-row-check","table":"ОсновнаяТаблица","column":"Наименование","value":"Иван"}
+{"browser_session":"<uuid>","operation":"table-row-open","table":"ОсновнаяТаблица","column":"Наименование","value":"Иван"}
 {"browser_session":"<uuid>","operation":"key","value":"Enter"}
 {"browser_session":"<uuid>","operation":"locator-check","locator_kind":"элемент","value":"Результат"}
 {"browser_session":"<uuid>","operation":"locator-check","locator_kind":"поле","value":"login-edit"}
 {"browser_session":"<uuid>","operation":"locator-check","locator_kind":"команда","value":"Готово"}
+{"browser_session":"<uuid>","operation":"locator-check","locator_kind":"команда диалога","value":"Delete"}
 {"browser_session":"<uuid>","operation":"locator-check","locator_kind":"пункт навигации","value":"Sales"}
 ```
 
@@ -74,6 +76,10 @@ hostname подтверждает действие открытия и не яв
 платформенной таблицы. Строки распознаются по `data-component="table-row"`, а
 точное значение — в именованной колонке. Результат содержит число совпадений,
 видимых строк и их тексты для evidence.
+`table-row-open` использует тот же составной локатор и открывает строку только
+при единственном совпадении. Для команды внутри видимого `role="alertdialog"`
+локатор `команда диалога` ограничивает поиск границей диалога и не конфликтует
+с одноимённой командой формы.
 
 После изменения DOM запрашивать новый snapshot; старые `ref` не считать
 актуальным доказательством.
