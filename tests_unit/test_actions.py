@@ -140,6 +140,46 @@ class ЗаголовокОкнаTest(unittest.TestCase):
                 self._контекст(), {"заголовок_диалога": "Delete client"}
             )
 
+
+class ДоступностьTest(unittest.TestCase):
+    def _контекст(self):
+        временный = tempfile.TemporaryDirectory()
+        self.addCleanup(временный.cleanup)
+        каталог = Path(временный.name)
+        return Контекст(MagicMock(), Настройки("test", каталог), каталог)
+
+    def test_подтверждает_недоступный_элемент(self) -> None:
+        элемент = MagicMock()
+        элемент.is_enabled.return_value = False
+        элемент.get_attribute.return_value = None
+        with (
+            patch("elemspec.actions._элемент", return_value=элемент),
+            patch(
+                "elemspec.actions._база",
+                return_value=(MagicMock(), "селектор '#submitButton'", ""),
+            ),
+        ):
+            результат = получить("проверить_доступность")(
+                self._контекст(),
+                {"селектор": "#submitButton", "доступен": False},
+            )
+        self.assertIn("недоступен", результат)
+
+    def test_aria_disabled_считается_недоступным(self) -> None:
+        элемент = MagicMock()
+        элемент.is_enabled.return_value = True
+        элемент.get_attribute.return_value = "true"
+        with (
+            patch("elemspec.actions._элемент", return_value=элемент),
+            patch(
+                "elemspec.actions._база",
+                return_value=(MagicMock(), "команда 'Save'", ""),
+            ),
+        ):
+            получить("проверить_доступность")(
+                self._контекст(), {"команда": "Save", "доступен": False}
+            )
+
 class ЗначениеПоляTest(unittest.TestCase):
     def _контекст(self, редактор: _Редактор, количество: int = 1):
         временный = tempfile.TemporaryDirectory()

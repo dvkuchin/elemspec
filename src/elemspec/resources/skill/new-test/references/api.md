@@ -31,6 +31,7 @@ hostname подтверждает действие открытия и не яв
 
 ```json
 {"browser_session":"<uuid>","operation":"snapshot"}
+{"browser_session":"<uuid>","operation":"visible-text","text_limit":20000}
 {"browser_session":"<uuid>","operation":"locator-pick","ref":"e4"}
 {"browser_session":"<uuid>","operation":"click","ref":"e4"}
 {"browser_session":"<uuid>","operation":"hover","ref":"e4"}
@@ -48,7 +49,20 @@ hostname подтверждает действие открытия и не яв
 {"browser_session":"<uuid>","operation":"locator-check","locator_kind":"пункт навигации","value":"Sales"}
 {"browser_session":"<uuid>","operation":"locator-check","locator_kind":"заголовок формы","value":"Clients"}
 {"browser_session":"<uuid>","operation":"locator-check","locator_kind":"заголовок диалога","value":"Delete client"}
+{"browser_session":"<uuid>","operation":"locator-resolve","locator_kind":"селектор","value":"input[name='email']"}
 ```
+
+`visible-text` возвращает нормализованный видимый `innerText` страницы и
+признак обрезания. Предел `text_limit` — от 1 до 50 000, по умолчанию 20 000.
+Значения `input`, включая password-поля, в этот текст не входят; в evidence
+сохраняются только длина и признак обрезания. Операция нужна для разведки
+неизвестной фразы; шаг feature затем подтверждается точечным `locator-check`.
+
+`locator-resolve` принимает явный локатор, требует ровно одно видимое
+совпадение и возвращает новый `ref`. Этот `ref` можно передать в `click`, `hover`,
+`fill`, `read-value` и другие ref-операции. Текст и произвольный CSS возвращают
+технический долг. Простые CSS-локаторы, различающиеся только кавычками
+в атрибуте, считаются тем же evidence.
 
 `snapshot` возвращает отдельный `ref` для каждого видимого
 `data-component="navigation-item"`. В полях `текст` и `метка` находится текст
@@ -57,6 +71,14 @@ hostname подтверждает действие открытия и не яв
 долга, если точная метка уникальна. В feature использовать, например,
 `Когда я нажимаю пункт навигации "Sales"`. После `hover`, клика или другого
 изменения DOM запросить новый `snapshot`.
+
+Если для элемента нет платформенной семантики и `data-testid`, `locator-pick`
+пробует стабильные `id`, `name` и `aria-label`. Он вернёт простой
+атрибутный CSS без долга. Динамические id, `placeholder`, текст и структурный
+CSS остаются резервом с техническим долгом.
+
+`locator-check` дополнительно возвращает `доступных`: число видимых элементов,
+которые не отключены native-атрибутом и не имеют `aria-disabled="true"`.
 
 Для редактируемого элемента внутри именованного `data-testid` компонента
 `snapshot` возвращает `компонент_поля`, а `locator-pick` -

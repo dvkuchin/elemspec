@@ -69,6 +69,46 @@ class НегативнаяМутацияTest(unittest.TestCase):
             мутация["feature"],
         )
 
+    def test_css_локатор_остаётся_валидным_при_мутации(self) -> None:
+        feature = (
+            '# language: ru\nФункция: Форма\n  Сценарий: Поле\n'
+            '    Тогда виден селектор "input[name=\'password\']"\n'
+        )
+        мутация = выбрать_мутацию(feature)
+        self.assertIn(
+            'селектор "input[name=\'password\']" виден ровно 0 раз',
+            мутация["feature"],
+        )
+        self.assertNotIn("password']__ELEMPWT_NEGATIVE_", мутация["feature"])
+
+    def test_css_существование_мутируется_количеством(self) -> None:
+        feature = (
+            '# language: ru\nФункция: Форма\n  Сценарий: Поле\n'
+            '    Тогда есть селектор "#submitButton:not([disabled])"\n'
+        )
+        мутация = выбрать_мутацию(feature)
+        self.assertIn(
+            'селектор "#submitButton:not([disabled])" встречается ровно 0 раз',
+            мутация["feature"],
+        )
+
+    def test_доступность_мутируется_инверсией(self) -> None:
+        feature = (
+            '# language: ru\nФункция: Форма\n  Сценарий: Команда\n'
+            '    Тогда команда "Save" недоступна\n'
+        )
+        мутация = выбрать_мутацию(feature)
+        self.assertEqual("проверить_доступность", мутация["действие"])
+        self.assertIn('команда "Save" доступна', мутация["feature"])
+
+    def test_мутация_видимой_команды_остаётся_валидной(self) -> None:
+        feature = (
+            '# language: ru\nФункция: Форма\n  Сценарий: Команда\n'
+            '    Тогда видна команда "Save"\n'
+        )
+        мутация = выбрать_мутацию(feature)
+        self.assertIn('видна команда "Save__ELEMPWT_NEGATIVE_', мутация["feature"])
+
     def test_портит_ожидаемое_значение_поля(self) -> None:
         feature = (
             '# language: ru\nФункция: Форма\n  Сценарий: Поле\n'

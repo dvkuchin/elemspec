@@ -67,6 +67,59 @@ class АгентскийБраузерTest(unittest.TestCase):
         os.environ.get("ELEMPWT_BROWSER_TESTS") == "1",
         "запуск Chromium требует отдельного разрешения среды",
     )
+    def test_выбирает_стабильный_name_вместо_nth_of_type(self) -> None:
+        политика = ПолитикаХостов(frozenset({"example.test"}))
+        with АгентскийБраузер(политика) as браузер:
+            браузер._страница.set_content(
+                '<form><div><input name="email"></div>'
+                '<div><input name="password" type="password"></div></form>'
+            )
+            снимок = браузер.снимок()
+            email = next(x for x in снимок["элементы"] if x["name"] == "email")
+            выбор = браузер.подобрать_локатор(email["ref"])
+            self.assertEqual(
+                {"вид": "селектор", "значение": 'input[name="email"]'},
+                выбор["локатор"],
+            )
+            self.assertFalse(выбор["долг"])
+            self.assertNotIn("nth-of-type", выбор["локатор"]["значение"])
+
+    @unittest.skipUnless(
+        os.environ.get("ELEMPWT_BROWSER_TESTS") == "1",
+        "запуск Chromium требует отдельного разрешения среды",
+    )
+    def test_явный_локатор_даёт_ref_для_действия(self) -> None:
+        политика = ПолитикаХостов(frozenset({"example.test"}))
+        with АгентскийБраузер(политика) as браузер:
+            браузер._страница.set_content('<input name="email">')
+            выбор = браузер.разрешить_локатор(
+                "селектор", 'input[name="email"]'
+            )
+            браузер.ввести(выбор["ref"], "user@example.test")
+            self.assertEqual(
+                "user@example.test",
+                браузер._страница.locator('input[name="email"]').input_value(),
+            )
+
+    @unittest.skipUnless(
+        os.environ.get("ELEMPWT_BROWSER_TESTS") == "1",
+        "запуск Chromium требует отдельного разрешения среды",
+    )
+    def test_видимый_текст_возвращает_ошибку_но_не_password_value(self) -> None:
+        политика = ПолитикаХостов(frozenset({"example.test"}))
+        with АгентскийБраузер(политика) as браузер:
+            браузер._страница.set_content(
+                '<input type="password" value="TOP_SECRET">'
+                '<div class="alert">The password is too short</div>'
+            )
+            результат = браузер.видимый_текст()
+            self.assertIn("The password is too short", результат["текст"])
+            self.assertNotIn("TOP_SECRET", результат["текст"])
+
+    @unittest.skipUnless(
+        os.environ.get("ELEMPWT_BROWSER_TESTS") == "1",
+        "запуск Chromium требует отдельного разрешения среды",
+    )
     def test_снимок_и_проверка_локатора(self) -> None:
         политика = ПолитикаХостов(frozenset({"example.test"}))
         with АгентскийБраузер(политика) as браузер:
