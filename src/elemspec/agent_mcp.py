@@ -36,7 +36,7 @@ from .agent_sessions import применить, подготовить, откр
 from .project import ПолитикаХостов, Проект
 
 
-ВЕРСИЯ_MCP_API = "0.7.0-dev.0"
+ВЕРСИЯ_MCP_API = "0.8.0-dev.0"
 
 
 def корень_mcp(явный: Path | None = None) -> Path:
@@ -151,16 +151,16 @@ class MCPRuntime:
 
     def __init__(self, корень: Path, optional_project: bool = False) -> None:
         self._старт = корень
-        self._проект: Проект | None = None
         if not optional_project:
             self._найти_проект()
         self._browsers: dict[str, _BrowserProcess] = {}
         self._lock = threading.Lock()
 
     def _найти_проект(self) -> Проект:
-        if self._проект is None:
-            self._проект = Проект.найти(self._старт)
-        return self._проект
+        # elemspec.toml является пользовательской конфигурацией, которую автор
+        # может уточнить во время диалога. Все новые MCP-операции должны видеть
+        # одну свежую версию allowlist и путей без перезапуска сервера.
+        return Проект.найти(self._старт)
 
     @property
     def корень(self) -> Path:
@@ -352,8 +352,10 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
         browser_session: str,
         operation: Literal[
             "snapshot",
+            "visible-text",
             "locator-check",
             "locator-pick",
+            "locator-resolve",
             "table-row-check",
             "table-row-open",
             "click",
@@ -373,11 +375,14 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
         table: str | None = None,
         column: str | None = None,
         limit: int = 500,
+        text_limit: int = 20_000,
     ) -> dict[str, Any]:
         """Run one constrained action in an existing discovery browser session."""
-        if operation == "locator-check" and (locator_kind is None or value is None):
+        if operation in {"locator-check", "locator-resolve"} and (
+            locator_kind is None or value is None
+        ):
             raise ОшибкаMCPАдаптера(
-                "locator-check требует locator_kind и value"
+                f"{operation} требует locator_kind и value"
             )
         if operation in {"table-row-check", "table-row-open"} and (
             table is None or column is None or value is None
@@ -399,12 +404,18 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
             )
         if operation in {"fill", "select-value", "select-any-value", "key"} and value is None:
             raise ОшибкаMCPАдаптера(f"{operation} требует value")
-        if not 1 <= limit <= 2000:
-            raise ОшибкаMCPАдаптера("limit должен быть от 1 до 2000")
+        if not 1 <= limit <= 2_000:
+            raise ОшибкаMCPАдаптера(
+                "limit должен быть от 1 до 2000"
+            )
+        if not 1 <= text_limit <= 50_000:
+            raise ОшибкаMCPАдаптера("text_limit должен быть от 1 до 50000")
         запрос: dict[str, Any] = {"операция": operation}
         if operation == "snapshot":
             запрос["лимит"] = limit
-        elif operation == "locator-check":
+        elif operation == "visible-text":
+            запрос["лимит"] = text_limit
+        elif operation in {"locator-check", "locator-resolve"}:
             запрос.update({"вид": locator_kind, "значение": value})
         elif operation in {"table-row-check", "table-row-open"}:
             запрос.update(

@@ -190,6 +190,8 @@ def _цикл_браузера(
                     результат = браузер.открыть(запрос.get("url"))
                 elif операция == "snapshot":
                     результат = браузер.снимок(запрос.get("лимит", 500))
+                elif операция == "visible-text":
+                    результат = браузер.видимый_текст(запрос.get("лимит", 20_000))
                 elif операция == "locator-check":
                     результат = браузер.проверить_локатор(
                         запрос.get("вид"),
@@ -197,6 +199,10 @@ def _цикл_браузера(
                     )
                 elif операция == "locator-pick":
                     результат = браузер.подобрать_локатор(запрос.get("ref"))
+                elif операция == "locator-resolve":
+                    результат = браузер.разрешить_локатор(
+                        запрос.get("вид"), запрос.get("значение")
+                    )
                 elif операция == "table-row-check":
                     результат = браузер.проверить_строки_таблицы(
                         запрос.get("таблица"),
@@ -248,7 +254,8 @@ def _цикл_браузера(
                 else:
                     raise ОшибкаАгентскогоAPI(
                         "операция browser должна быть: start, snapshot, "
-                        "locator-check, locator-pick, table-row-check, table-row-open, "
+                        "visible-text, locator-check, locator-pick, locator-resolve, "
+                        "table-row-check, table-row-open, "
                         "click, hover, fill, select-value, select-any-value, "
                         "read-value, key или close"
                     )

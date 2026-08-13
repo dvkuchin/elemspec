@@ -33,6 +33,18 @@ class MCPСерверTest(unittest.IsolatedAsyncioTestCase):
         self.среда.закрыть()
         self._tmp.cleanup()
 
+    def test_runtime_перечитывает_allowlist_без_перезапуска(self) -> None:
+        self.assertEqual(
+            frozenset({"example.test"}), self.среда.политика.разрешённые
+        )
+        (self.корень / "elemspec.toml").write_text(
+            '[project]\nname = "test"\n[hosts]\nallowed = ["fresh.test"]\n',
+            encoding="utf-8",
+        )
+        self.assertEqual(
+            frozenset({"fresh.test"}), self.среда.политика.разрешённые
+        )
+
     async def test_публикует_узкие_инструменты(self) -> None:
         async with Client(self.сервер, raise_exceptions=True) as клиент:
             инструменты = (await клиент.list_tools()).tools
@@ -109,6 +121,15 @@ class MCPСерверTest(unittest.IsolatedAsyncioTestCase):
             )
         self.assertTrue(ответ.is_error)
         self.assertIn("locator_kind и value", ответ.content[0].text)
+
+    async def test_locator_resolve_требует_явный_локатор(self) -> None:
+        async with Client(self.сервер, raise_exceptions=True) as клиент:
+            ответ = await клиент.call_tool(
+                "browser_action",
+                {"browser_session": "missing", "operation": "locator-resolve"},
+            )
+        self.assertTrue(ответ.is_error)
+        self.assertIn("locator-resolve требует locator_kind и value", ответ.content[0].text)
 
     async def test_hover_требует_ref_из_snapshot(self) -> None:
         async with Client(self.сервер, raise_exceptions=True) as клиент:
