@@ -1,10 +1,14 @@
 {
-  "имя": "DemoCRM smoke",
+  "имя": "DemoCRM: обратимый CRUD клиента",
   "базовый_адрес": "https://app.example.test",
   "таймаут_мс": 30000,
+  "браузер": {
+    "тип": "chromium",
+    "headless": true
+  },
+  "запись": "провал",
   "параметры": {
     "адрес_приложения": "https://app.example.test/applications/demo-crm",
-    "путь_приложения": "/applications/demo-crm",
     "логин": "REPLACE_WITH_TEST_LOGIN",
     "пароль": "REPLACE_WITH_TEST_PASSWORD"
   }

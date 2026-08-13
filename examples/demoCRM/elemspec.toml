@@ -6,7 +6,9 @@ state_dir = ".elemspec"
 gaps_dir = "engine-gaps"
 
 [hosts]
+# Замените шаблонные hostname на hostname тестового приложения и его сервера
+# авторизации. В allowlist не должно быть производственных окружений.
 allowed = [
-  "app-696041216.1cmycloud.com",
-  "auth.1cmycloud.com",
+  "app.example.test",
+  "auth.example.test",
 ]

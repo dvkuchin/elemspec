@@ -474,7 +474,7 @@ class АгентскийAPITest(unittest.TestCase):
             self.разведки,
             разведка,
             "fill",
-            {"ref": "e1", "значение": "TestUser"},
+            {"ref": "e1", "значение": "SAMPLE_USER"},
             {
                 "ref": "e1",
                 "локатор": {"вид": "поле", "значение": "login-edit"},
@@ -491,7 +491,7 @@ class АгентскийAPITest(unittest.TestCase):
                 '# language: ru\n'
                 'Функция: Авторизация\n'
                 '  Сценарий: Логин\n'
-                '    Когда я ввожу "TestUser" в поле "login-edit"\n'
+                '    Когда я ввожу "SAMPLE_USER" в поле "login-edit"\n'
             ),
             None,
             self.разведки,

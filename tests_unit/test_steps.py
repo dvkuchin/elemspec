@@ -53,11 +53,11 @@ class ПлатформенныйЛокаторTest(unittest.TestCase):
             (
                 "ввести",
                 {
-                    "значение": "TestUser",
+                    "значение": "SAMPLE_USER",
                     "поле_компонента": "login-edit",
                 },
             ),
-            разобрать('я ввожу "TestUser" в поле "login-edit"'),
+            разобрать('я ввожу "SAMPLE_USER" в поле "login-edit"'),
         )
 
     def test_публикует_локатор_в_контракте_dsl(self) -> None:

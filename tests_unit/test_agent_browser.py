@@ -235,15 +235,15 @@ class АгентскийБраузерTest(unittest.TestCase):
                 выбор_поля["локатор"],
             )
             self.assertFalse(выбор_поля["долг"])
-            браузер.ввести(поле_логина["ref"], "TestUser")
+            браузер.ввести(поле_логина["ref"], "SAMPLE_USER")
             прочитано = браузер.прочитать_значение(поле_логина["ref"])
-            self.assertEqual("TestUser", прочитано["значение"])
+            self.assertEqual("SAMPLE_USER", прочитано["значение"])
             self.assertEqual(
                 {"вид": "поле", "значение": "login-edit"},
                 прочитано["локатор"],
             )
             self.assertEqual(
-                "TestUser",
+                "SAMPLE_USER",
                 браузер._страница.locator(
                     '[data-testid="login-edit"] input'
                 ).input_value(),
@@ -282,7 +282,7 @@ class АгентскийБраузерTest(unittest.TestCase):
                     контекст,
                     {
                         "поле_компонента": "login-edit",
-                        "ожидаемое": "TestUser",
+                        "ожидаемое": "SAMPLE_USER",
                     },
                 )
                 получить("очистить_поле")(
