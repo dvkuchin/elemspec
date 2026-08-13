@@ -536,6 +536,61 @@ class АгентскийБраузер:
             "введено_символов": len(значение),
         }
 
+    def выбрать_html_option(self, ref: str, значение: str) -> dict[str, Any]:
+        """Выбрать option одиночного нативного HTML select по точной подписи."""
+        if not isinstance(значение, str) or not значение:
+            raise ОшибкаАгентскогоAPI("подпись HTML option должна быть непустой строкой")
+        ожидаемое = re.sub(r"\s+", " ", значение).strip()
+        список = self._получить_ref(ref)
+        локатор = self._локатор_ref(ref)
+        try:
+            тег = str(список.evaluate("node => node.tagName.toLowerCase()"))
+            if тег != "select":
+                raise ОшибкаАгентскогоAPI(
+                    f"select-html-option получил <{тег}>, ожидался нативный HTML <select>"
+                )
+            if not список.is_visible():
+                raise ОшибкаАгентскогоAPI("нативный HTML <select> не виден")
+            if список.get_attribute("multiple") is not None:
+                raise ОшибкаАгентскогоAPI("HTML <select multiple> пока не поддерживается")
+            if not список.is_enabled():
+                raise ОшибкаАгентскогоAPI("нативный HTML <select> недоступен")
+            варианты = [
+                (индекс, option)
+                for индекс, option in enumerate(список.locator("option").all())
+                if re.sub(r"\s+", " ", option.inner_text()).strip() == ожидаемое
+            ]
+            if not варианты:
+                raise ОшибкаАгентскогоAPI(f"в HTML <select> нет варианта '{ожидаемое}'")
+            if len(варианты) > 1:
+                raise ОшибкаАгентскогоAPI(
+                    f"вариант '{ожидаемое}' найден {len(варианты)} раза, выбор неоднозначен"
+                )
+            if not варианты[0][1].is_enabled():
+                raise ОшибкаАгентскогоAPI(f"вариант '{ожидаемое}' недоступен")
+            список.select_option(index=варианты[0][0])
+            выбранные = список.locator("option:checked")
+            фактическая_подпись = (
+                re.sub(r"\s+", " ", выбранные.first.inner_text()).strip()
+                if выбранные.count() == 1
+                else ""
+            )
+            if фактическая_подпись != ожидаемое:
+                raise ОшибкаАгентскогоAPI(
+                    f"после выбора получена подпись '{фактическая_подпись}'"
+                )
+            return {
+                "ref": ref,
+                "локатор": локатор,
+                "значение": ожидаемое,
+                "фактическое_значение": фактическая_подпись,
+                "html_value": список.input_value(),
+            }
+        except ОшибкаАгентскогоAPI:
+            raise
+        except ОшибкаPlaywright as ошибка:
+            raise ОшибкаАгентскогоAPI(f"вариант HTML <select> не выбран: {ошибка}") from ошибка
+
     def выбрать_значение(self, ref: str, значение: str) -> dict[str, Any]:
         """Выбрать точное значение в платформенном списке именованного поля."""
         if not isinstance(значение, str) or not значение:

@@ -16,8 +16,8 @@ from .model import Настройки, ОшибкаЗагрузки, Тест, �
 from .project import ОшибкаПолитикиХостов, ПолитикаХостов
 
 
-ВЕРСИЯ_API = "0.11.0-dev.0"
-ВЕРСИЯ_DSL = "0.8.0-dev.0"
+ВЕРСИЯ_API = "0.12.0-dev.0"
+ВЕРСИЯ_DSL = "0.9.0-dev.0"
 
 СОСТОЯНИЕ_ЧЕРНОВИК = "DRAFT_READY"
 СОСТОЯНИЕ_ДЫРА_ЯЗЫКА = "LANGUAGE_GAP"
@@ -105,6 +105,7 @@ def контракт(
                     "click",
                     "hover",
                     "fill",
+                    "select-html-option",
                     "select-value",
                     "select-any-value",
                     "read-value",
