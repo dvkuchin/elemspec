@@ -224,6 +224,11 @@ def _цикл_браузера(
                         запрос.get("ref"),
                         запрос.get("значение"),
                     )
+                elif операция == "select-html-option":
+                    результат = браузер.выбрать_html_option(
+                        запрос.get("ref"),
+                        запрос.get("значение"),
+                    )
                 elif операция == "select-value":
                     результат = браузер.выбрать_значение(
                         запрос.get("ref"),
@@ -256,7 +261,8 @@ def _цикл_браузера(
                         "операция browser должна быть: start, snapshot, "
                         "visible-text, locator-check, locator-pick, locator-resolve, "
                         "table-row-check, table-row-open, "
-                        "click, hover, fill, select-value, select-any-value, "
+                        "click, hover, fill, select-html-option, select-value, "
+                        "select-any-value, "
                         "read-value, key или close"
                     )
                 записать_событие(

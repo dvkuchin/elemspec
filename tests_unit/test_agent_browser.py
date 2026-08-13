@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from elemspec.actions import Контекст, ОшибкаДействия, получить
+from elemspec.agent import ОшибкаАгентскогоAPI
 from elemspec.agent_browser import АгентскийБраузер, это_автоимя
 from elemspec.model import Настройки
 from elemspec.project import ОграничительНавигации, ПолитикаХостов
@@ -115,6 +116,63 @@ class АгентскийБраузерTest(unittest.TestCase):
             результат = браузер.видимый_текст()
             self.assertIn("The password is too short", результат["текст"])
             self.assertNotIn("TOP_SECRET", результат["текст"])
+
+    @unittest.skipUnless(
+        os.environ.get("ELEMPWT_BROWSER_TESTS") == "1",
+        "запуск Chromium требует отдельного разрешения среды",
+    )
+    def test_выбирает_нативный_html_option_по_подписи(self) -> None:
+        политика = ПолитикаХостов(frozenset({"example.test"}))
+        with АгентскийБраузер(политика) as браузер:
+            браузер._страница.set_content(
+                '<select name="search_scope">'
+                '<option value="site">На сайте</option>'
+                '<option value="articles">В статьях</option>'
+                '</select>'
+            )
+            снимок = браузер.снимок()
+            список = next(x for x in снимок["элементы"] if x["тег"] == "select")
+            выбор = браузер.подобрать_локатор(список["ref"])
+            self.assertEqual("select[name=\"search_scope\"]", выбор["локатор"]["значение"])
+            результат = браузер.выбрать_html_option(список["ref"], "В статьях")
+            self.assertEqual("В статьях", результат["фактическое_значение"])
+            self.assertEqual("articles", результат["html_value"])
+            with tempfile.TemporaryDirectory() as временный:
+                каталог = Path(временный)
+                контекст = Контекст(браузер._страница, Настройки("test", каталог), каталог)
+                отчёт = получить("выбрать_html_option")(
+                    контекст,
+                    {"селектор": 'select[name="search_scope"]', "значение": "На сайте"},
+                )
+                self.assertIn("На сайте", отчёт)
+
+    @unittest.skipUnless(
+        os.environ.get("ELEMPWT_BROWSER_TESTS") == "1",
+        "запуск Chromium требует отдельного разрешения среды",
+    )
+    def test_html_select_не_скрывает_дубли_и_multiple(self) -> None:
+        политика = ПолитикаХостов(frozenset({"example.test"}))
+        with АгентскийБраузер(политика) as браузер:
+            браузер._страница.set_content(
+                '<select name="scope">'
+                '<option value="one">Сайт</option>'
+                '<option value="two">Сайт</option>'
+                '</select>'
+            )
+            список = next(
+                x for x in браузер.снимок()["элементы"] if x["тег"] == "select"
+            )
+            with self.assertRaisesRegex(ОшибкаАгентскогоAPI, "найден 2 раза"):
+                браузер.выбрать_html_option(список["ref"], "Сайт")
+
+            браузер._страница.set_content(
+                '<select name="scope" multiple><option>Сайт</option></select>'
+            )
+            список = next(
+                x for x in браузер.снимок()["элементы"] if x["тег"] == "select"
+            )
+            with self.assertRaisesRegex(ОшибкаАгентскогоAPI, "multiple"):
+                браузер.выбрать_html_option(список["ref"], "Сайт")
 
     @unittest.skipUnless(
         os.environ.get("ELEMPWT_BROWSER_TESTS") == "1",

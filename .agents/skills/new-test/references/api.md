@@ -36,6 +36,7 @@ hostname подтверждает действие открытия и не яв
 {"browser_session":"<uuid>","operation":"click","ref":"e4"}
 {"browser_session":"<uuid>","operation":"hover","ref":"e4"}
 {"browser_session":"<uuid>","operation":"fill","ref":"e7","value":"Иван"}
+{"browser_session":"<uuid>","operation":"select-html-option","ref":"e8","value":"В статьях"}
 {"browser_session":"<uuid>","operation":"select-value","ref":"e7","value":"Москва"}
 {"browser_session":"<uuid>","operation":"select-any-value","ref":"e7","value":"Москва"}
 {"browser_session":"<uuid>","operation":"read-value","ref":"e7"}
@@ -79,6 +80,12 @@ CSS остаются резервом с техническим долгом.
 
 `locator-check` дополнительно возвращает `доступных`: число видимых элементов,
 которые не отключены native-атрибутом и не имеют `aria-disabled="true"`.
+
+`select-html-option` требует `ref` единственного видимого нативного HTML
+`<select>` и точную видимую подпись option в `value`. Отсутствующая, повторяющаяся
+или disabled-опция даёт явную ошибку; `<select multiple>` не поддерживается. Ответ
+содержит фактическую подпись и низкоуровневый `html_value`. В feature это
+`Когда я выбираю "В статьях" в селектор "select[name='search_scope']"`.
 
 Для редактируемого элемента внутри именованного `data-testid` компонента
 `snapshot` возвращает `компонент_поля`, а `locator-pick` -

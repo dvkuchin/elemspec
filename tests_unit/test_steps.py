@@ -124,6 +124,21 @@ class ПлатформенныйЛокаторTest(unittest.TestCase):
             ),
         )
 
+    def test_разбирает_выбор_нативного_html_option(self) -> None:
+        self.assertEqual(
+            (
+                "выбрать_html_option",
+                {
+                    "значение": "В статьях",
+                    "селектор": "select[name='search_scope']",
+                },
+            ),
+            разобрать(
+                'я выбираю "В статьях" в селектор '
+                '"select[name=\'search_scope\']"'
+            ),
+        )
+
     def test_разбирает_наличие_строки_таблицы(self) -> None:
         self.assertEqual(
             (
