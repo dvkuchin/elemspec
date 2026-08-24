@@ -462,6 +462,52 @@ class АгентскийБраузерTest(unittest.TestCase):
         os.environ.get("ELEMPWT_BROWSER_TESTS") == "1",
         "запуск Chromium требует отдельного разрешения среды",
     )
+    def test_клик_ждёт_готовность_пункта_после_hover(self) -> None:
+        политика = ПолитикаХостов(frozenset({"example.test"}))
+        разметка = (
+            '<div data-component="navigation-item" '
+            'onmouseenter="requestAnimationFrame(() => requestAnimationFrame('
+            '() => this.dataset.ready=\'yes\'))" '
+            'onclick="if(this.dataset.ready===\'yes\')'
+            'this.dataset.clicked=\'yes\'">'
+            '<span data-component="label">Clients</span></div>'
+        )
+        with АгентскийБраузер(политика) as браузер:
+            браузер._страница.set_content(разметка)
+            with tempfile.TemporaryDirectory() as временный:
+                каталог = Path(временный)
+                контекст = Контекст(
+                    браузер._страница,
+                    Настройки("test", каталог),
+                    каталог,
+                )
+                получить("клик")(
+                    контекст, {"пункт_навигации": "Clients"}
+                )
+            пункт = браузер._страница.locator(
+                "[data-component='navigation-item']"
+            )
+            self.assertEqual("yes", пункт.get_attribute("data-ready"))
+            self.assertEqual("yes", пункт.get_attribute("data-clicked"))
+
+            браузер._страница.set_content(разметка)
+            снимок = браузер.снимок()
+            пункт_ref = next(
+                элемент["ref"]
+                for элемент in снимок["элементы"]
+                if элемент.get("компонент") == "navigation-item"
+            )
+            браузер.нажать(пункт_ref)
+            пункт = браузер._страница.locator(
+                "[data-component='navigation-item']"
+            )
+            self.assertEqual("yes", пункт.get_attribute("data-ready"))
+            self.assertEqual("yes", пункт.get_attribute("data-clicked"))
+
+    @unittest.skipUnless(
+        os.environ.get("ELEMPWT_BROWSER_TESTS") == "1",
+        "запуск Chromium требует отдельного разрешения среды",
+    )
     def test_вложенная_метка_адресует_ближайший_пункт(self) -> None:
         политика = ПолитикаХостов(frozenset({"example.test"}))
         with АгентскийБраузер(политика) as браузер:

@@ -45,6 +45,45 @@ def пункт_навигации(страница, метка: str):
     )
 
 
+def подготовить_пункт_навигации_к_клику(элемент) -> None:
+    """Навести указатель и дождаться устойчивого интерактивного состояния меню.
+
+    Подменю веб-клиента Элемента появляется от hover. Если сразу после раскрытия
+    переместить указатель к дочернему пункту и нажать его в том же цикле
+    отрисовки, приложение изредка закрывает меню, не выполнив переход. Два кадра
+    браузера — это ожидание фактической готовности DOM, а не фиксированная пауза.
+    """
+    элемент.wait_for(state="visible")
+    элемент.hover()
+    элемент.evaluate(
+        """
+        async node => {
+          await new Promise(resolve => requestAnimationFrame(
+            () => requestAnimationFrame(resolve)
+          ));
+          if (!node.isConnected) throw new Error('navigation item detached');
+          const style = getComputedStyle(node);
+          const rect = node.getBoundingClientRect();
+          if (
+            style.visibility !== 'visible' ||
+            style.display === 'none' ||
+            Number(style.opacity) === 0 ||
+            rect.width === 0 || rect.height === 0
+          ) {
+            throw new Error('navigation item is not visible');
+          }
+          const target = document.elementFromPoint(
+            rect.left + rect.width / 2,
+            rect.top + rect.height / 2
+          );
+          if (!target || (target !== node && !node.contains(target))) {
+            throw new Error('navigation item does not receive pointer events');
+          }
+        }
+        """
+    )
+
+
 def команда(страница, метка: str):
     """Найти платформенную команду-кнопку по точной вложенной label."""
     точный_текст = re.compile(rf"^\s*{re.escape(метка)}\s*$")
