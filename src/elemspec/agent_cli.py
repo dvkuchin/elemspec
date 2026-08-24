@@ -7,6 +7,8 @@ import json
 import sys
 from pathlib import Path
 
+from playwright.sync_api import Error as ОшибкаPlaywright
+
 from . import __version__
 from .agent import (
     ОшибкаАгентскогоAPI,
@@ -281,6 +283,7 @@ def _цикл_браузера(
                 json.JSONDecodeError,
                 ОшибкаАгентскогоAPI,
                 ОшибкаПолитикиХостов,
+                ОшибкаPlaywright,
             ) as ошибка:
                 print(
                     json.dumps(
