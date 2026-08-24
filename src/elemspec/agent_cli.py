@@ -241,6 +241,10 @@ def _цикл_браузера(
                     )
                 elif операция == "read-value":
                     результат = браузер.прочитать_значение(запрос.get("ref"))
+                elif операция == "read-field-error":
+                    результат = браузер.прочитать_ошибку_поля(
+                        запрос.get("ref")
+                    )
                 elif операция == "key":
                     результат = браузер.нажать_клавишу(
                         запрос.get("клавиша")
@@ -263,7 +267,7 @@ def _цикл_браузера(
                         "table-row-check, table-row-open, "
                         "click, hover, fill, select-html-option, select-value, "
                         "select-any-value, "
-                        "read-value, key или close"
+                        "read-value, read-field-error, key или close"
                     )
                 записать_событие(
                     каталог_разведок,
