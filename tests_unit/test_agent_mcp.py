@@ -155,6 +155,18 @@ class MCPСерверTest(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(ответ.is_error)
         self.assertIn("read-value требует ref", ответ.content[0].text)
 
+    async def test_read_field_error_требует_ref_из_snapshot(self) -> None:
+        async with Client(self.сервер, raise_exceptions=True) as клиент:
+            ответ = await клиент.call_tool(
+                "browser_action",
+                {
+                    "browser_session": "missing",
+                    "operation": "read-field-error",
+                },
+            )
+        self.assertTrue(ответ.is_error)
+        self.assertIn("read-field-error требует ref", ответ.content[0].text)
+
     async def test_select_value_требует_ref_и_value(self) -> None:
         async with Client(self.сервер, raise_exceptions=True) as клиент:
             ответ = await клиент.call_tool(

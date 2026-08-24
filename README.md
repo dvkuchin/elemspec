@@ -11,7 +11,7 @@ Wheel уже собирается; публикация в PyPI ещё не вы
 
 ## Статус
 
-- Текущая версия: **`0.16.0.dev0`**.
+- Текущая версия: **`0.17.0.dev0`**.
 - Проект до первого стабильного релиза: интерфейсы и форматы можно менять без
   слоя обратной совместимости.
 - Unit-тесты и сборка wheel подтверждены публичным CI на Linux, macOS и Windows
@@ -84,6 +84,7 @@ _reports/<дата>/report.{json,html} + снимки/видео
 - [Язык тестов](https://github.com/dvkuchin/elemspec/blob/main/docs/language.md) — полный справочник Gherkin DSL и `init.json`;
 - [ИИ-автор](https://github.com/dvkuchin/elemspec/blob/main/docs/authoring.md) — строгий профиль Codex CLI;
 - [Архитектура](https://github.com/dvkuchin/elemspec/blob/main/docs/architecture.md) — устройство агентского контура;
+- [История изменений](https://github.com/dvkuchin/elemspec/blob/main/CHANGELOG.md) — что появилось в каждой версии;
 - [ROADMAP.md](https://github.com/dvkuchin/elemspec/blob/main/ROADMAP.md) — дальнейшее развитие ElemSpec.
 
 ## Быстрый старт
@@ -234,11 +235,13 @@ elemspec --project /absolute/path/to/my-specs integrate codex --force
 - JSON/HTML-отчёты, снимок падения, разделение `провал` / `сломан`;
 - allowlist hostname до и во время навигации;
 - статическая валидация, agent sessions, browser evidence, engine-gap registry и prove-протокол;
-- browser-разведка компонентов навигации 1С:Элемент и операция `hover`;
+- browser-разведка компонентов навигации 1С:Элемент, операция `hover` и
+  синхронизация раскрывающегося меню без фиксированных пауз;
 - поиск неизвестного заранее видимого текста и привязка уникального
   явного локатора к `ref` в browser API;
 - семантический выбор точного значения из платформенного выпадающего списка поля;
-- строгий Codex CLI с единственным MCP-сервером.
+- семантическая проверка точного сообщения валидации внутри именованного поля;
+- строгий Codex CLI с единственным MCP-сервером;
 - универсальный MCP prompt `new_test` и генератор конфигурации для локальных ИИ-клиентов.
 
 ## Ограничения и дальнейшее развитие

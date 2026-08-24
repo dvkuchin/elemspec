@@ -36,7 +36,7 @@ from .agent_sessions import применить, подготовить, откр
 from .project import ПолитикаХостов, Проект
 
 
-ВЕРСИЯ_MCP_API = "0.9.0-dev.0"
+ВЕРСИЯ_MCP_API = "0.10.0-dev.0"
 
 
 def корень_mcp(явный: Path | None = None) -> Path:
@@ -365,6 +365,7 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
             "select-value",
             "select-any-value",
             "read-value",
+            "read-field-error",
             "key",
         ],
         ref: str | None = None,
@@ -396,7 +397,7 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
             in {
                 "locator-pick", "click", "hover", "fill", "select-html-option",
                 "select-value", "select-any-value",
-                "read-value",
+                "read-value", "read-field-error",
             }
             and ref is None
         ):
@@ -424,7 +425,9 @@ def создать_mcp(среда: MCPRuntime) -> MCPServer:
             запрос.update(
                 {"таблица": table, "колонка": column, "значение": value}
             )
-        elif operation in {"locator-pick", "click", "hover", "read-value"}:
+        elif operation in {
+            "locator-pick", "click", "hover", "read-value", "read-field-error"
+        }:
             запрос["ref"] = ref
         elif operation in {
             "fill", "select-html-option", "select-value", "select-any-value"

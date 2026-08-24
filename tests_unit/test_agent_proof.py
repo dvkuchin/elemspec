@@ -29,13 +29,22 @@ def _зелёный() -> dict:
     }
 
 
-def _красный() -> dict:
+def _красный(feature: str) -> dict:
+    мутированный_шаг = next(
+        строка.strip()
+        for строка in feature.splitlines()
+        if "__ELEMPWT_NEGATIVE_" in строка
+    )
     return {
         "тесты": [
             {
                 "статус": "провал",
                 "шаги": [
-                    {"статус": "провал", "снимок": "падение-шаг-2.png"}
+                    {
+                        "имя": мутированный_шаг,
+                        "статус": "провал",
+                        "снимок": "падение-шаг-2.png",
+                    }
                 ],
             }
         ]
@@ -119,6 +128,20 @@ class НегативнаяМутацияTest(unittest.TestCase):
         self.assertIn(
             'поле "БизнесРегион" имеет значение '
             '"Москва__ELEMPWT_NEGATIVE_',
+            мутация["feature"],
+        )
+
+    def test_портит_ошибку_поля_как_последний_бизнес_результат(self) -> None:
+        feature = (
+            '# language: ru\nФункция: Валидация\n  Сценарий: Поле\n'
+            '    Тогда открылась форма "Client"\n'
+            '    И поле "Наименование" имеет ошибку "Required"\n'
+        )
+        мутация = выбрать_мутацию(feature)
+        self.assertEqual("проверить_ошибку_поля", мутация["действие"])
+        self.assertIn(
+            'поле "Наименование" имеет ошибку '
+            '"Required__ELEMPWT_NEGATIVE_',
             мутация["feature"],
         )
 
@@ -229,7 +252,7 @@ class ДоказательствоКрасногоTest(unittest.TestCase):
         def runner(каталог: Path, _отчёт: Path) -> dict:
             текст = (каталог / "test.feature").read_text(encoding="utf-8")
             прогоны.append(текст)
-            return _красный() if "__ELEMPWT_NEGATIVE_" in текст else _зелёный()
+            return _красный(текст) if "__ELEMPWT_NEGATIVE_" in текст else _зелёный()
 
         результат = доказать_красный(
             self.тесты,
@@ -284,7 +307,7 @@ class ДоказательствоКрасногоTest(unittest.TestCase):
             if вызовы == 1:
                 return {"тесты": [{"статус": "сломан", "шаги": []}]}
             текст = (каталог / "test.feature").read_text(encoding="utf-8")
-            return _красный() if "__ELEMPWT_NEGATIVE_" in текст else _зелёный()
+            return _красный(текст) if "__ELEMPWT_NEGATIVE_" in текст else _зелёный()
 
         первая = доказать_красный(
             self.тесты,
@@ -372,6 +395,46 @@ class ДоказательствоКрасногоTest(unittest.TestCase):
         )
         self.assertEqual("BUG_CONFIRMED", результат["состояние"])
 
+    def test_падение_до_мутированного_шага_не_доказывает_красный(self) -> None:
+        feature = (
+            '# language: ru\n'
+            'Функция: Проверка\n'
+            '  Сценарий: Главная\n'
+            '    Тогда открылась форма "Clients"\n'
+            '    И поле "Наименование" имеет ошибку "Required"\n'
+        )
+        сессия = self._создать_применённую_сессию(feature)
+
+        def runner(каталог: Path, _отчёт: Path) -> dict:
+            текст = (каталог / "test.feature").read_text(encoding="utf-8")
+            if "__ELEMPWT_NEGATIVE_" not in текст:
+                return _зелёный()
+            return {
+                "тесты": [
+                    {
+                        "статус": "провал",
+                        "шаги": [
+                            {
+                                "имя": 'Тогда открылась форма "Clients"',
+                                "статус": "провал",
+                                "снимок": "падение-шаг-1.png",
+                            }
+                        ],
+                    }
+                ]
+            }
+
+        результат = доказать_красный(
+            self.тесты,
+            self.сессии,
+            self.отчёты,
+            сессия["сессия"],
+            runner,
+        )
+
+        self.assertEqual("RED_NOT_CONFIRMED", результат["состояние"])
+        self.assertIn("мутированном шаге", результат["сообщение"])
+
     def test_зарегистрированный_gap_даёт_complete_with_gaps(self) -> None:
         feature = (
             '# language: ru\n'
@@ -418,7 +481,7 @@ class ДоказательствоКрасногоTest(unittest.TestCase):
 
         def runner(каталог: Path, _отчёт: Path) -> dict:
             текст = (каталог / "test.feature").read_text(encoding="utf-8")
-            return _красный() if "__ELEMPWT_NEGATIVE_" in текст else _зелёный()
+            return _красный(текст) if "__ELEMPWT_NEGATIVE_" in текст else _зелёный()
 
         результат = доказать_красный(
             self.тесты,

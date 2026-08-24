@@ -33,6 +33,7 @@ import re
     f'[data-component="{КОМПОНЕНТ_СТРОКИ_ТАБЛИЦЫ}"]'
 )
 ТЕСТ_ИД_ВЫПАДАЮЩЕГО_СПИСКА = "edit-dropdown-table"
+ТЕСТ_ИД_СООБЩЕНИЯ_ПОЛЯ = "base-editable-message-information"
 
 
 def пункт_навигации(страница, метка: str):
@@ -41,6 +42,45 @@ def пункт_навигации(страница, метка: str):
     метки = страница.locator(СЕЛЕКТОР_МЕТКИ).filter(has_text=точный_текст)
     return метки.locator(
         f'xpath=ancestor::*[@data-component="{КОМПОНЕНТ_ПУНКТА_НАВИГАЦИИ}"][1]'
+    )
+
+
+def подготовить_пункт_навигации_к_клику(элемент) -> None:
+    """Навести указатель и дождаться устойчивого интерактивного состояния меню.
+
+    Подменю веб-клиента Элемента появляется от hover. Если сразу после раскрытия
+    переместить указатель к дочернему пункту и нажать его в том же цикле
+    отрисовки, приложение изредка закрывает меню, не выполнив переход. Два кадра
+    браузера — это ожидание фактической готовности DOM, а не фиксированная пауза.
+    """
+    элемент.wait_for(state="visible")
+    элемент.hover()
+    элемент.evaluate(
+        """
+        async node => {
+          await new Promise(resolve => requestAnimationFrame(
+            () => requestAnimationFrame(resolve)
+          ));
+          if (!node.isConnected) throw new Error('navigation item detached');
+          const style = getComputedStyle(node);
+          const rect = node.getBoundingClientRect();
+          if (
+            style.visibility !== 'visible' ||
+            style.display === 'none' ||
+            Number(style.opacity) === 0 ||
+            rect.width === 0 || rect.height === 0
+          ) {
+            throw new Error('navigation item is not visible');
+          }
+          const target = document.elementFromPoint(
+            rect.left + rect.width / 2,
+            rect.top + rect.height / 2
+          );
+          if (!target || (target !== node && !node.contains(target))) {
+            throw new Error('navigation item does not receive pointer events');
+          }
+        }
+        """
     )
 
 
@@ -86,6 +126,11 @@ def заголовок_диалога(страница, заголовок: str)
 def поле_компонента(страница, имя: str):
     """Найти текстовое поле внутри именованного компонента."""
     return страница.get_by_test_id(имя).locator(СЕЛЕКТОР_РЕДАКТИРУЕМОГО)
+
+
+def сообщения_поля(страница, имя: str):
+    """Найти сообщения валидации только внутри именованного компонента поля."""
+    return страница.get_by_test_id(имя).get_by_test_id(ТЕСТ_ИД_СООБЩЕНИЯ_ПОЛЯ)
 
 
 def значение_редактора(элемент) -> str:

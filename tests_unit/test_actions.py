@@ -320,6 +320,63 @@ class ЗначениеПоляTest(unittest.TestCase):
         self.assertIn("любое из 2", результат)
 
 
+class ОшибкаПоляTest(unittest.TestCase):
+    def _контекст(self):
+        временный = tempfile.TemporaryDirectory()
+        self.addCleanup(временный.cleanup)
+        каталог = Path(временный.name)
+        страница = MagicMock()
+        страница.get_by_test_id.return_value.count.return_value = 1
+        return Контекст(
+            страница,
+            Настройки("test", каталог, таймаут_мс=0),
+            каталог,
+        )
+
+    def test_проверяет_точную_ошибку_внутри_именованного_поля(self) -> None:
+        сообщение = MagicMock()
+        сообщение.is_visible.return_value = True
+        сообщение.inner_text.return_value = "  Required\n"
+        сообщения = MagicMock()
+        сообщения.all.return_value = [сообщение]
+        with patch("elemspec.actions.сообщения_поля", return_value=сообщения):
+            результат = получить("проверить_ошибку_поля")(
+                self._контекст(),
+                {"поле_компонента": "Наименование", "ошибка": "Required"},
+            )
+        self.assertEqual("ошибка поля 'Наименование': 'Required'", результат)
+
+    def test_неверный_текст_ошибки_является_провалом(self) -> None:
+        сообщение = MagicMock()
+        сообщение.is_visible.return_value = True
+        сообщение.inner_text.return_value = "Too short"
+        сообщения = MagicMock()
+        сообщения.all.return_value = [сообщение]
+        with (
+            patch("elemspec.actions.сообщения_поля", return_value=сообщения),
+            self.assertRaisesRegex(ОшибкаПроверки, "Too short.*Required"),
+        ):
+            получить("проверить_ошибку_поля")(
+                self._контекст(),
+                {"поле_компонента": "Наименование", "ошибка": "Required"},
+            )
+
+    def test_несколько_сообщений_не_скрывают_неоднозначность(self) -> None:
+        сообщения = MagicMock()
+        сообщения.all.return_value = [
+            MagicMock(is_visible=MagicMock(return_value=True)),
+            MagicMock(is_visible=MagicMock(return_value=True)),
+        ]
+        with (
+            patch("elemspec.actions.сообщения_поля", return_value=сообщения),
+            self.assertRaisesRegex(ОшибкаДействия, "сообщений валидации — 2"),
+        ):
+            получить("проверить_ошибку_поля")(
+                self._контекст(),
+                {"поле_компонента": "Наименование", "ошибка": "Required"},
+            )
+
+
 class СтрокиТаблицыTest(unittest.TestCase):
     def _контекст(self, количество: int) -> Контекст:
         временный = tempfile.TemporaryDirectory()
