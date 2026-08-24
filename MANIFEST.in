@@ -1,3 +1,4 @@
+include CHANGELOG.md
 graft examples
 prune examples/demoCRM/_reports
 prune examples/demoCRM/.elemspec

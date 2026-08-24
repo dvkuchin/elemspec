@@ -15,6 +15,7 @@ class ДокументацияTest(unittest.TestCase):
     def test_канонические_документы_существуют(self) -> None:
         for имя in (
             "README.md",
+            "CHANGELOG.md",
             "docs/installation.md",
             "docs/usage.md",
             "docs/language.md",
@@ -33,6 +34,10 @@ class ДокументацияTest(unittest.TestCase):
     def test_readme_содержит_текущую_версию(self) -> None:
         readme = (КОРЕНЬ / "README.md").read_text(encoding="utf-8")
         self.assertIn(__version__, readme)
+
+    def test_changelog_содержит_текущую_версию(self) -> None:
+        changelog = (КОРЕНЬ / "CHANGELOG.md").read_text(encoding="utf-8")
+        self.assertIn(__version__, changelog)
 
     def test_все_зависимости_pyproject_описаны_в_установке(self) -> None:
         with (КОРЕНЬ / "pyproject.toml").open("rb") as файл:
@@ -91,6 +96,10 @@ class ДокументацияTest(unittest.TestCase):
             self.assertTrue(путь.is_file(), путь)
         self.assertIn(
             "graft examples",
+            (КОРЕНЬ / "MANIFEST.in").read_text(encoding="utf-8"),
+        )
+        self.assertIn(
+            "include CHANGELOG.md",
             (КОРЕНЬ / "MANIFEST.in").read_text(encoding="utf-8"),
         )
         self.assertIn(
